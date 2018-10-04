@@ -512,7 +512,7 @@ namespace BotMod
                 {
                     if (GlobalVars.personIsSaved.person1)
                     {
-                        GlobalVars.landscape[GlobalVars.RobLoc.currentX, GlobalVars.RobLoc.currentY] = Convert.ToChar(GlobalVars.emptyCell);
+                        GlobalVars.landscape[0, 2] = Convert.ToChar(GlobalVars.emptyCell);
                     }
                     else
                     {
@@ -561,7 +561,7 @@ namespace BotMod
             {
                 if (GlobalVars.landscape[GlobalVars.RobLoc.currentX, GlobalVars.RobLoc.currentY] == GlobalVars.landscape[3, 6])
                 {
-                    GlobalVars.landscape[GlobalVars.RobLoc.currentX, GlobalVars.RobLoc.currentY] = Convert.ToChar("B");
+                    GlobalVars.landscape[3, 6] = Convert.ToChar("B");
                 }
                 else
                 {
