@@ -4,10 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace BotMod
-{
-    public class GlobalVars
-    {
+namespace BotMod {
+    public class GlobalVars {
         public static string robotsName = "Fred";
         public static string contMessage = "Press any key to continue. . .";
         public const int landscapeSize = 10;
@@ -17,35 +15,27 @@ namespace BotMod
         public static readonly string personCell = "P";
         public static int powerRemaining = 60;
         public static int pplSaved = 0;
-        public struct RobLocation
-        {
+        public struct RobLocation {
             public int currentX, currentY;
             public int newX, newY;
         }
         public static RobLocation RobLoc = new RobLocation();
-        public struct PassengerBay
-        {
+        public struct PassengerBay {
             public string Slot1, Slot2;
         }
         public static PassengerBay PasBay = new PassengerBay();
-        public struct PeopleSaved
-        {
+        public struct PeopleSaved {
             public bool person1, person2, person3, person4;
         }
         public static PeopleSaved personIsSaved = new PeopleSaved();
     }
 
-    class Program
-    {
-        public static void CompleteInitialisations()
-        {
+    class Program {
+        public static void CompleteInitialisations() {
             int k = GlobalVars.landscapeSize;
-            for (int i = 0; i < k; i++)
-            {
-                for (int j = 0; j < k; j++)
-                {
-                    if (GlobalVars.landscape[i, j] == Convert.ToChar(GlobalVars.robotCell))
-                    {
+            for (int i = 0; i < k; i++) {
+                for (int j = 0; j < k; j++) {
+                    if (GlobalVars.landscape[i, j] == Convert.ToChar(GlobalVars.robotCell)) {
                         GlobalVars.RobLoc.currentX = i;
                         GlobalVars.RobLoc.currentY = j;
                         break;
@@ -54,8 +44,7 @@ namespace BotMod
             }
         }
 
-        static void Main()
-        {
+        static void Main() {
             Console.Clear();
             CompleteInitialisations();
             TitleScreen();
@@ -64,15 +53,12 @@ namespace BotMod
             MainMenu();
         }
 
-        public static void MainMenu()
-        {
+        public static void MainMenu() {
             bool userQuit = false;
-            do
-            {
+            do {
                 bool mnuChoValid = false;
                 int mCho = 0;
-                do
-                {
+                do {
                     Console.Clear();
                     Console.WriteLine("Main Menu");
                     Console.WriteLine();
@@ -87,37 +73,30 @@ namespace BotMod
                     Console.WriteLine();
                     string userChoice = Console.ReadLine();
                     bool isNumeric = int.TryParse(userChoice, out mCho);
-                    if (isNumeric == true)
-                    {
+                    if (isNumeric == true) {
                         mnuChoValid = true;
                     }
-                    else
-                    {
+                    else {
                         Console.WriteLine();
                         Console.WriteLine("Please enter a valid menu choice!");
                         System.Threading.Thread.Sleep(1000);
                         mnuChoValid = false;
                     }
                 } while (mnuChoValid == false);
-                if (mCho == 1)
-                {
+                if (mCho == 1) {
                     NameRobot();
                 }
-                else if (mCho == 2)
-                {
+                else if (mCho == 2) {
                     PlayGame();
                 }
-                else if (mCho == 3)
-                {
+                else if (mCho == 3) {
                     Rules();
                 }
-                else if (mCho == 4)
-                {
+                else if (mCho == 4) {
                     userQuit = true;
                     Environment.Exit(0);
                 }
-                else
-                {
+                else {
                     Console.ForegroundColor = ConsoleColor.Red;
                     Console.Write("Error: ");
                     Console.ForegroundColor = ConsoleColor.Yellow;
@@ -129,8 +108,7 @@ namespace BotMod
             } while (userQuit == false);
         }
 
-        public static void NameRobot()
-        {
+        public static void NameRobot() {
             Console.Clear();
             Console.WriteLine("-------------------------------");
             Console.WriteLine("Name robot");
@@ -140,18 +118,15 @@ namespace BotMod
             Console.ReadKey(true);
             bool nameValid = false;
             bool nameConfirmed = false;
-            do
-            {
-                do
-                {
+            do {
+                do {
                     Console.Clear();
                     Console.WriteLine("Please enter a valid name for your robot.");
                     Console.WriteLine("Make sure it starts with a capital letter and is more than three characters long.");
                     GlobalVars.robotsName = Console.ReadLine();
                     string rbFChr = GlobalVars.robotsName.Substring(0, 1);
                     string rbFChrUpper = rbFChr.ToUpper();
-                    if (GlobalVars.robotsName.Length < 3 && rbFChr != rbFChrUpper)
-                    {
+                    if (GlobalVars.robotsName.Length < 3 && rbFChr != rbFChrUpper) {
                         Console.ForegroundColor = ConsoleColor.Red;
                         Console.Write("Error: ");
                         Console.ForegroundColor = ConsoleColor.Yellow;
@@ -159,8 +134,7 @@ namespace BotMod
                         Console.ForegroundColor = ConsoleColor.White;
                         nameValid = false;
                     }
-                    else if (rbFChr != rbFChrUpper)
-                    {
+                    else if (rbFChr != rbFChrUpper) {
                         Console.ForegroundColor = ConsoleColor.Red;
                         Console.Write("Error: ");
                         Console.ForegroundColor = ConsoleColor.Yellow;
@@ -169,8 +143,7 @@ namespace BotMod
                         Console.WriteLine();
                         nameValid = false;
                     }
-                    else if (GlobalVars.robotsName.Length < 3)
-                    {
+                    else if (GlobalVars.robotsName.Length < 3) {
                         Console.ForegroundColor = ConsoleColor.Red;
                         Console.Write("Error: ");
                         Console.ForegroundColor = ConsoleColor.Yellow;
@@ -179,55 +152,47 @@ namespace BotMod
                         Console.WriteLine();
                         nameValid = false;
                     }
-                    else
-                    {
+                    else {
                         nameValid = true;
                     }
                 } while (nameValid == false);
                 bool confirmationvalid = false;
-                do
-                {
+                do {
                     Console.Clear();
                     Console.WriteLine("Robot name is valid. Are you sure you want to change your robot's name? (Y/N)");
                     string rNmConfQ = Console.ReadLine();
                     rNmConfQ = rNmConfQ.ToUpper();
-                    if (rNmConfQ == "Y")
-                    {
+                    if (rNmConfQ == "Y") {
                         nameConfirmed = true;
                         confirmationvalid = true;
                         Console.ForegroundColor = ConsoleColor.Green;
                         Console.WriteLine("New robot name confirmed.");
                         Console.ForegroundColor = ConsoleColor.White;
                     }
-                    else if (rNmConfQ == "N")
-                    {
+                    else if (rNmConfQ == "N") {
                         nameConfirmed = false;
                         confirmationvalid = true;
                         Console.WriteLine("Robot name not confirmed. You will be sent back to the name robot menu.");
                     }
-                    else
-                    {
+                    else {
                         confirmationvalid = false;
                         Console.WriteLine("Please enter a valid character!");
                         System.Threading.Thread.Sleep(500);
                     }
                 } while (confirmationvalid == false);
-                if (nameConfirmed == false)
-                {
+                if (nameConfirmed == false) {
                     GlobalVars.robotsName = "Fred";
                 }
             } while (nameConfirmed == false);
         }
 
-        public static void PlayGame()
-        {
+        public static void PlayGame() {
             Console.Clear();
             EmptyLandscape();
             InitialiseLandscape();
             bool gameOver = false;
             bool gameWon = false;
-            do
-            {
+            do {
                 DrawLandscape();
                 DisplayInfo();
                 string move = EnterMove();
@@ -235,53 +200,42 @@ namespace BotMod
                 System.Threading.Thread.Sleep(500);
                 MoveRobot(move);
                 Console.Clear();
-                if (GlobalVars.powerRemaining == 0)
-                {
+                if (GlobalVars.powerRemaining == 0) {
                     gameOver = true;
                     break;
                 }
-                else
-                {
+                else {
                     gameOver = false;
                 }
-                if (GlobalVars.pplSaved == 4)
-                {
+                if (GlobalVars.pplSaved == 4) {
                     gameWon = true;
                     break;
                 }
-                else
-                {
+                else {
                     gameWon = false;
                 }
             } while (gameOver == false | gameWon == false);
-            if (gameWon == true)
-            {
+            if (gameWon == true) {
                 YouWon();
             }
-            else if (gameOver == true)
-            {
+            else if (gameOver == true) {
                 YouLost();
             }
-            else if (gameWon == true && gameOver == true)
-            {
+            else if (gameWon == true && gameOver == true) {
                 YouWon();
             }
         }
 
-        public static void EmptyLandscape()
-        {
+        public static void EmptyLandscape() {
             int k = GlobalVars.landscapeSize;
-            for (int i = 0; i < k; i++)
-            {
-                for (int j = 0; j < k; j++)
-                {
+            for (int i = 0; i < k; i++) {
+                for (int j = 0; j < k; j++) {
                     GlobalVars.landscape[i, j] = Convert.ToChar(GlobalVars.emptyCell);
                 }
             }
         }
 
-        public static void InitialiseLandscape()
-        {
+        public static void InitialiseLandscape() {
             GlobalVars.landscape[GlobalVars.RobLoc.currentX, GlobalVars.RobLoc.currentY] = Convert.ToChar(GlobalVars.robotCell);
             GlobalVars.landscape[0, 2] = Convert.ToChar(GlobalVars.personCell);
             GlobalVars.landscape[2, 7] = Convert.ToChar(GlobalVars.personCell);
@@ -290,15 +244,12 @@ namespace BotMod
             GlobalVars.landscape[3, 6] = Convert.ToChar("B");
         }
 
-        public static void DrawLandscape()
-        {
+        public static void DrawLandscape() {
             Console.ForegroundColor = ConsoleColor.Yellow;
             Console.WriteLine();
             int k = GlobalVars.landscapeSize;
-            for (int i = 0; i < k; i++)
-            {
-                for (int j = 0; j < k; j++)
-                {
+            for (int i = 0; i < k; i++) {
+                for (int j = 0; j < k; j++) {
                     Console.Write(GlobalVars.landscape[i, j]);
                     Console.Write(" ");
                 }
@@ -307,8 +258,7 @@ namespace BotMod
             Console.ForegroundColor = ConsoleColor.White;
         }
 
-        public static void DisplayInfo()
-        {
+        public static void DisplayInfo() {
             Console.WriteLine();
             Console.ForegroundColor = ConsoleColor.White;
             Console.Write("Power Remaining: ");
@@ -333,27 +283,22 @@ namespace BotMod
             Console.WriteLine();
         }
 
-        public static string EnterMove()
-        {
+        public static string EnterMove() {
             string move;
             Console.ForegroundColor = ConsoleColor.White;
             bool moveIsValid = false;
             bool moveIsWithinBounds = false;
             string entermove;
-            do
-            {
-                do
-                {
+            do {
+                do {
                     Console.WriteLine();
                     Console.WriteLine("Please enter a move for {0} to take:", GlobalVars.robotsName);
                     entermove = Console.ReadLine();
                     entermove = entermove.ToUpper();
-                    if (entermove == "N" || entermove == "E" || entermove == "S" || entermove == "W")
-                    {
+                    if (entermove == "N" || entermove == "E" || entermove == "S" || entermove == "W") {
                         moveIsValid = true;
                     }
-                    else
-                    {
+                    else {
                         moveIsValid = false;
                         Console.ForegroundColor = ConsoleColor.Red;
                         Console.Write("Error:");
@@ -362,8 +307,7 @@ namespace BotMod
                         Console.WriteLine();
                     }
                 } while (moveIsValid == false);
-                if (GlobalVars.RobLoc.currentX == 0 && entermove == "N")
-                {
+                if (GlobalVars.RobLoc.currentX == 0 && entermove == "N") {
                     moveIsWithinBounds = false;
                     Console.ForegroundColor = ConsoleColor.Red;
                     Console.Write("Error:");
@@ -371,8 +315,7 @@ namespace BotMod
                     Console.Write(" Move invalid! You have attempted to move out of the grid. Please try again.");
                     Console.WriteLine();
                 }
-                else if (GlobalVars.RobLoc.currentY == 0 && entermove == "W")
-                {
+                else if (GlobalVars.RobLoc.currentY == 0 && entermove == "W") {
                     moveIsWithinBounds = false;
                     Console.ForegroundColor = ConsoleColor.Red;
                     Console.Write("Error:");
@@ -380,8 +323,7 @@ namespace BotMod
                     Console.Write(" Move invalid! You have attempted to move out of the grid. Please try again.");
                     Console.WriteLine();
                 }
-                else if (GlobalVars.RobLoc.currentY == 9 && entermove == "E")
-                {
+                else if (GlobalVars.RobLoc.currentY == 9 && entermove == "E") {
                     moveIsWithinBounds = false;
                     Console.ForegroundColor = ConsoleColor.Red;
                     Console.Write("Error:");
@@ -389,8 +331,7 @@ namespace BotMod
                     Console.Write(" Move invalid! You have attempted to move out of the grid. Please try again.");
                     Console.WriteLine();
                 }
-                else if (GlobalVars.RobLoc.currentX == 9 && entermove == "S")
-                {
+                else if (GlobalVars.RobLoc.currentX == 9 && entermove == "S") {
                     moveIsWithinBounds = false;
                     Console.ForegroundColor = ConsoleColor.Red;
                     Console.Write("Error:");
@@ -398,8 +339,7 @@ namespace BotMod
                     Console.Write(" Move invalid! You have attempted to move out of the grid. Please try again.");
                     Console.WriteLine();
                 }
-                else
-                {
+                else {
                     Console.WriteLine("Move Valid! Moving {0} in the direction of {1}.", GlobalVars.robotsName, entermove);
                     moveIsWithinBounds = true;
                 }
@@ -408,36 +348,29 @@ namespace BotMod
             return move;
         }
 
-        public static void MoveRobot(string move)
-        {
+        public static void MoveRobot(string move) {
             bool slot2WasFilled = false;
-            if (move == "N")
-            {
+            if (move == "N") {
                 GlobalVars.RobLoc.newX = GlobalVars.RobLoc.currentX - 1;
                 GlobalVars.RobLoc.newY = GlobalVars.RobLoc.currentY;
             }
-            else if (move == "E")
-            {
+            else if (move == "E") {
                 GlobalVars.RobLoc.newX = GlobalVars.RobLoc.currentX;
                 GlobalVars.RobLoc.newY = GlobalVars.RobLoc.currentY + 1;
             }
-            else if (move == "S")
-            {
+            else if (move == "S") {
                 GlobalVars.RobLoc.newX = GlobalVars.RobLoc.currentX + 1;
                 GlobalVars.RobLoc.newY = GlobalVars.RobLoc.currentY;
             }
-            else if (move == "W")
-            {
+            else if (move == "W") {
                 GlobalVars.RobLoc.newX = GlobalVars.RobLoc.currentX;
                 GlobalVars.RobLoc.newY = GlobalVars.RobLoc.currentY - 1;
             }
             GlobalVars.powerRemaining = GlobalVars.powerRemaining - 1;
-            if (GlobalVars.PasBay.Slot2 == null)
-            {
+            if (GlobalVars.PasBay.Slot2 == null) {
                 PickUpPerson(move);
             }
-            else if (GlobalVars.PasBay.Slot2 != null)
-            {
+            else if (GlobalVars.PasBay.Slot2 != null) {
                 slot2WasFilled = true;
             }
 
@@ -448,51 +381,38 @@ namespace BotMod
             ReplaceRobot();
         }
 
-        public static void PickUpPerson(string move)
-        {
-            if (GlobalVars.landscape[GlobalVars.RobLoc.newX, GlobalVars.RobLoc.newY] == Convert.ToChar(GlobalVars.personCell))
-            {
-                if (GlobalVars.PasBay.Slot1 == null)
-                {
+        public static void PickUpPerson(string move) {
+            if (GlobalVars.landscape[GlobalVars.RobLoc.newX, GlobalVars.RobLoc.newY] == Convert.ToChar(GlobalVars.personCell)) {
+                if (GlobalVars.PasBay.Slot1 == null) {
                     GlobalVars.PasBay.Slot1 = GlobalVars.personCell;
                 }
-                else if (GlobalVars.PasBay.Slot2 == null)
-                {
+                else if (GlobalVars.PasBay.Slot2 == null) {
                     GlobalVars.PasBay.Slot2 = GlobalVars.personCell;
                 }
             }
-            if (GlobalVars.landscape[GlobalVars.RobLoc.newX, GlobalVars.RobLoc.newY] == GlobalVars.landscape[0, 2])
-            {
+            if (GlobalVars.landscape[GlobalVars.RobLoc.newX, GlobalVars.RobLoc.newY] == GlobalVars.landscape[0, 2]) {
                 GlobalVars.personIsSaved.person1 = true;
             }
-            else if (GlobalVars.landscape[GlobalVars.RobLoc.newX, GlobalVars.RobLoc.newY] == GlobalVars.landscape[2, 7])
-            {
+            else if (GlobalVars.landscape[GlobalVars.RobLoc.newX, GlobalVars.RobLoc.newY] == GlobalVars.landscape[2, 7]) {
                 GlobalVars.personIsSaved.person2 = true;
             }
-            else if (GlobalVars.landscape[GlobalVars.RobLoc.newX, GlobalVars.RobLoc.newY] == GlobalVars.landscape[6, 4])
-            {
+            else if (GlobalVars.landscape[GlobalVars.RobLoc.newX, GlobalVars.RobLoc.newY] == GlobalVars.landscape[6, 4]) {
                 GlobalVars.personIsSaved.person3 = true;
             }
-            else if (GlobalVars.landscape[GlobalVars.RobLoc.newX, GlobalVars.RobLoc.newY] == GlobalVars.landscape[6, 9])
-            {
+            else if (GlobalVars.landscape[GlobalVars.RobLoc.newX, GlobalVars.RobLoc.newY] == GlobalVars.landscape[6, 9]) {
                 GlobalVars.personIsSaved.person4 = true;
             }
         }
 
-        public static void DropPeople(string move)
-        {
-            if (GlobalVars.landscape[GlobalVars.RobLoc.newX, GlobalVars.RobLoc.newY] == Convert.ToChar("B"))
-            {
-                if (GlobalVars.PasBay.Slot1 == GlobalVars.personCell || GlobalVars.PasBay.Slot2 == GlobalVars.personCell)
-                {
-                    if (GlobalVars.PasBay.Slot2 == GlobalVars.personCell)
-                    {
+        public static void DropPeople(string move) {
+            if (GlobalVars.landscape[GlobalVars.RobLoc.newX, GlobalVars.RobLoc.newY] == Convert.ToChar("B")) {
+                if (GlobalVars.PasBay.Slot1 == GlobalVars.personCell || GlobalVars.PasBay.Slot2 == GlobalVars.personCell) {
+                    if (GlobalVars.PasBay.Slot2 == GlobalVars.personCell) {
                         GlobalVars.PasBay.Slot2 = null;
                         GlobalVars.PasBay.Slot1 = null;
                         GlobalVars.pplSaved = GlobalVars.pplSaved + 2;
                     }
-                    else if (GlobalVars.PasBay.Slot1 == GlobalVars.personCell)
-                    {
+                    else if (GlobalVars.PasBay.Slot1 == GlobalVars.personCell) {
                         GlobalVars.PasBay.Slot1 = null;
                         GlobalVars.pplSaved = GlobalVars.pplSaved + 1;
                     }
@@ -500,87 +420,65 @@ namespace BotMod
             }
         }
 
-        public static void EraseRobot(bool slot2WasFilled)
-        {
-            if (slot2WasFilled == true)
-            {
-                if (GlobalVars.landscape[GlobalVars.RobLoc.currentX, GlobalVars.RobLoc.currentY] == GlobalVars.landscape[3, 6])
-                {
+        public static void EraseRobot(bool slot2WasFilled) {
+            if (slot2WasFilled == true) {
+                if (GlobalVars.landscape[GlobalVars.RobLoc.currentX, GlobalVars.RobLoc.currentY] == GlobalVars.landscape[3, 6]) {
                     GlobalVars.landscape[GlobalVars.RobLoc.currentX, GlobalVars.RobLoc.currentY] = Convert.ToChar("B");
                 }
-                else if (GlobalVars.landscape[GlobalVars.RobLoc.currentX, GlobalVars.RobLoc.currentY] == GlobalVars.landscape[0, 2])
-                {
-                    if (GlobalVars.personIsSaved.person1)
-                    {
+                else if (GlobalVars.landscape[GlobalVars.RobLoc.currentX, GlobalVars.RobLoc.currentY] == GlobalVars.landscape[0, 2]) {
+                    if (GlobalVars.personIsSaved.person1) {
                         GlobalVars.landscape[GlobalVars.RobLoc.currentX, GlobalVars.RobLoc.currentY] = Convert.ToChar(GlobalVars.emptyCell);
                     }
-                    else
-                    {
+                    else {
                         GlobalVars.landscape[0, 2] = Convert.ToChar(GlobalVars.personCell);
                     }
                 }
-                else if (GlobalVars.landscape[GlobalVars.RobLoc.currentX, GlobalVars.RobLoc.currentY] == GlobalVars.landscape[2, 7])
-                {
-                    if (GlobalVars.personIsSaved.person2)
-                    {
+                else if (GlobalVars.landscape[GlobalVars.RobLoc.currentX, GlobalVars.RobLoc.currentY] == GlobalVars.landscape[2, 7]) {
+                    if (GlobalVars.personIsSaved.person2) {
                         GlobalVars.landscape[2, 7] = Convert.ToChar(GlobalVars.emptyCell);
                     }
-                    else
-                    {
+                    else {
                         GlobalVars.landscape[2, 7] = Convert.ToChar(GlobalVars.personCell);
                     }
                 }
-                else if (GlobalVars.landscape[GlobalVars.RobLoc.currentX, GlobalVars.RobLoc.currentY] == GlobalVars.landscape[6, 4])
-                {
-                    if (GlobalVars.personIsSaved.person3)
-                    {
+                else if (GlobalVars.landscape[GlobalVars.RobLoc.currentX, GlobalVars.RobLoc.currentY] == GlobalVars.landscape[6, 4]) {
+                    if (GlobalVars.personIsSaved.person3) {
                         GlobalVars.landscape[6, 4] = Convert.ToChar(GlobalVars.emptyCell);
                     }
-                    else
-                    {
+                    else {
                         GlobalVars.landscape[6, 4] = Convert.ToChar(GlobalVars.personCell);
                     }
                 }
-                else if (GlobalVars.landscape[GlobalVars.RobLoc.currentX, GlobalVars.RobLoc.currentY] == GlobalVars.landscape[6, 9])
-                {
-                    if (GlobalVars.personIsSaved.person4)
-                    {
+                else if (GlobalVars.landscape[GlobalVars.RobLoc.currentX, GlobalVars.RobLoc.currentY] == GlobalVars.landscape[6, 9]) {
+                    if (GlobalVars.personIsSaved.person4) {
                         GlobalVars.landscape[6, 9] = Convert.ToChar(GlobalVars.emptyCell);
                     }
-                    else
-                    {
+                    else {
                         GlobalVars.landscape[6, 9] = Convert.ToChar(GlobalVars.personCell);
                     }
                 }
-                else
-                {
+                else {
                     GlobalVars.landscape[GlobalVars.RobLoc.currentX, GlobalVars.RobLoc.currentY] = Convert.ToChar(GlobalVars.emptyCell);
                 }
             }
-            else
-            {
-                if (GlobalVars.landscape[GlobalVars.RobLoc.currentX, GlobalVars.RobLoc.currentY] == GlobalVars.landscape[3, 6])
-                {
+            else {
+                if (GlobalVars.landscape[GlobalVars.RobLoc.currentX, GlobalVars.RobLoc.currentY] == GlobalVars.landscape[3, 6]) {
                     GlobalVars.landscape[GlobalVars.RobLoc.currentX, GlobalVars.RobLoc.currentY] = Convert.ToChar("B");
                 }
-                else
-                {
+                else {
                     GlobalVars.landscape[GlobalVars.RobLoc.currentX, GlobalVars.RobLoc.currentY] = Convert.ToChar(GlobalVars.emptyCell);
                 }
             }
         }
 
-        public static void ReplaceRobot()
-        {
+        public static void ReplaceRobot() {
             GlobalVars.landscape[GlobalVars.RobLoc.currentX, GlobalVars.RobLoc.currentY] = Convert.ToChar(GlobalVars.robotCell);
         }
 
-        public static void YouWon()
-        {
+        public static void YouWon() {
             Console.ForegroundColor = ConsoleColor.White;
             bool userPlayAgain = false;
-            do
-            {
+            do {
                 Console.Clear();
                 Console.WriteLine();
                 Console.WriteLine("Congratulations! You have succeeded in saving all the lost exlorers");
@@ -589,20 +487,17 @@ namespace BotMod
                 Console.WriteLine("Would you like to play again? (Y/N)");
                 string playAgain = Console.ReadLine();
                 playAgain = playAgain.ToUpper();
-                if (playAgain == "Y")
-                {
+                if (playAgain == "Y") {
                     userPlayAgain = true;
                     Main();
                 }
-                else if (playAgain == "N")
-                {
+                else if (playAgain == "N") {
                     userPlayAgain = false;
                     Console.WriteLine("Thank you again for playing!");
                     System.Threading.Thread.Sleep(500);
                     Environment.Exit(0);
                 }
-                else
-                {
+                else {
                     userPlayAgain = false;
                     Console.Clear();
                     Console.WriteLine("Please enter a valid character!");
@@ -611,12 +506,10 @@ namespace BotMod
             } while (userPlayAgain == false);
         }
 
-        public static void YouLost()
-        {
+        public static void YouLost() {
             Console.ForegroundColor = ConsoleColor.White;
             bool userPlayAgain = false;
-            do
-            {
+            do {
                 Console.Clear();
                 Console.WriteLine();
                 Console.WriteLine("Ouch! Unfortunately, you didn't manage to save the explorers");
@@ -625,20 +518,17 @@ namespace BotMod
                 Console.WriteLine("Would you like to play again? (Y/N)");
                 string playAgain = Console.ReadLine();
                 playAgain = playAgain.ToUpper();
-                if (playAgain == "Y")
-                {
+                if (playAgain == "Y") {
                     userPlayAgain = true;
                     Main();
                 }
-                else if (playAgain == "N")
-                {
+                else if (playAgain == "N") {
                     userPlayAgain = false;
                     Console.WriteLine("Thank you for playing!");
                     System.Threading.Thread.Sleep(500);
                     Environment.Exit(0);
                 }
-                else
-                {
+                else {
                     userPlayAgain = false;
                     Console.Clear();
                     Console.WriteLine("Please enter a valid character!");
@@ -647,8 +537,7 @@ namespace BotMod
             } while (userPlayAgain == false);
         }
 
-        public static void Rules()
-        {
+        public static void Rules() {
             Console.Clear();
             Console.ForegroundColor = ConsoleColor.Yellow;
             Console.WriteLine();
@@ -680,8 +569,7 @@ namespace BotMod
             Console.ReadKey(true);
         }
 
-        public static void TitleScreen()
-        {
+        public static void TitleScreen() {
             Console.ForegroundColor = ConsoleColor.Yellow;
             Console.Title = ("BotMod");
             Console.WriteLine(@"-----------------------------------------------------------------------");
