@@ -8,10 +8,9 @@ using System.Threading.Tasks;
 namespace BotMod {
 
     public class GlobalVars {
-          //===========================\\
-         //      GLOBAL VARIABLES       \\
-        //===============================\\
         public static string robotsName = "Fred";
+        public static string[] passengerBay = new string[3];
+        public static int largestBay = 0;
         public const int landscapeSize = 10;
         public static string[,] landscapeData = new string[landscapeSize, landscapeSize];
         public static char[,] landscape = new char[landscapeSize, landscapeSize];
@@ -21,32 +20,47 @@ namespace BotMod {
         public static int powerRemaining = 150;
         public static int pplSaved = 0;
         public static string TractionType = "Wheels";
-        public static string PassengerBaySize = "Small";
-        //
+        public static string passengerBaySize = "Small";
         public struct RobLocation {
             public int currentX, currentY;
             public int newX, newY;
         }
         public static RobLocation RobLoc = new RobLocation();
-        //
-        public struct PassengerBay {
-            public string Slot1, Slot2, Slot3;
-        }
-        public static PassengerBay PasBay = new PassengerBay();
-        //
         public struct PeopleSaved {
             public bool person1, person2, person3, person4;
         }
         public static PeopleSaved personIsSaved = new PeopleSaved();
-        //
+        public struct PeopleToSave {
+            public string person1, person2, person3, person4;
+        }
+        public static PeopleToSave pplToSave = new PeopleToSave();
     }
 
     class Program {
 
         static void Main() {
-            Console.Clear();
-            TitleScreen();
-            Console.WriteLine("Press any key to continue. . .");
+            Console.Title = "BotMod - A Robot Game";
+            bool flashControl = false;
+            do {
+                Console.Clear();
+                if (flashControl) {
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.WriteLine("        BotMod        ");
+                    Console.ForegroundColor = ConsoleColor.White;
+                    Console.WriteLine("~~~~~~~~~~~~~~~~~~~~~~");
+                    Console.WriteLine("Press any key to start");
+                    System.Threading.Thread.Sleep(600);
+                }
+                else if (!flashControl) {
+                    Console.WriteLine("        BotMod        ");
+                    Console.WriteLine("~~~~~~~~~~~~~~~~~~~~~~");
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.WriteLine("Press any key to start");
+                    Console.ForegroundColor = ConsoleColor.White;
+                    System.Threading.Thread.Sleep(600);
+                }
+                flashControl = !flashControl;
+            } while (!Console.KeyAvailable);
             Console.ReadKey(true);
             MainMenu();
         }
@@ -119,7 +133,7 @@ namespace BotMod {
                 Console.WriteLine("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
                 Console.WriteLine(" 1. Name Robot ({0})                  ", GlobalVars.robotsName);
                 Console.WriteLine(" 2. Change Traction ({0})             ", GlobalVars.TractionType);
-                Console.WriteLine(" 3. Change Passenger Bay Size ({0})   ", GlobalVars.PassengerBaySize);
+                Console.WriteLine(" 3. Change Passenger Bay Size ({0})   ", GlobalVars.passengerBaySize);
                 Console.WriteLine(" 4. Go To Main Menu                   ");
                 Console.WriteLine("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
                 Console.WriteLine();
@@ -170,7 +184,7 @@ namespace BotMod {
                     Console.Clear();
                     Console.WriteLine("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
                     Console.WriteLine("Current Robot Name: {0}", GlobalVars.robotsName);
-
+                    Console.WriteLine("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
                     Console.WriteLine("Please enter a valid name for your robot.");
                     Console.WriteLine("Make sure it starts with a capital letter and is more than three characters long.");
                     GlobalVars.robotsName = Console.ReadLine();
@@ -305,7 +319,7 @@ namespace BotMod {
             do {
                 Console.Clear();
                 Console.WriteLine("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
-                Console.WriteLine("Current passenger bay size: {0}         ", GlobalVars.PassengerBaySize);
+                Console.WriteLine("Current passenger bay size: {0}         ", GlobalVars.passengerBaySize);
                 Console.WriteLine("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
                 Console.WriteLine();
                 Console.WriteLine("Here you can change how large your passenger bay is.");
@@ -324,20 +338,23 @@ namespace BotMod {
                 if (isNumeric) {
                     if (mCho == 1) {
                         inputValid = true;
-                        GlobalVars.PassengerBaySize = "Small";
-                        Console.WriteLine("Passenger bay size sucessfully set to {0}", GlobalVars.PassengerBaySize);
+                        GlobalVars.passengerBaySize = "Small";
+                        GlobalVars.largestBay = 0;
+                        Console.WriteLine("Passenger bay size sucessfully set to {0}", GlobalVars.passengerBaySize);
                         System.Threading.Thread.Sleep(1000);
                     }
                     else if (mCho == 2) {
                         inputValid = true;
-                        GlobalVars.PassengerBaySize = "Med";
-                        Console.WriteLine("Passenger bay size sucessfully set to {0}", GlobalVars.PassengerBaySize);
+                        GlobalVars.passengerBaySize = "Med";
+                        GlobalVars.largestBay = 1;
+                        Console.WriteLine("Passenger bay size sucessfully set to {0}", GlobalVars.passengerBaySize);
                         System.Threading.Thread.Sleep(1000);
                     }
                     else if (mCho == 3) {
                         inputValid = true;
-                        GlobalVars.PassengerBaySize = "Large";
-                        Console.WriteLine("Passenger bay size sucessfully set to {0}", GlobalVars.PassengerBaySize);
+                        GlobalVars.passengerBaySize = "Large";
+                        GlobalVars.largestBay = 2;
+                        Console.WriteLine("Passenger bay size sucessfully set to {0}", GlobalVars.passengerBaySize);
                         System.Threading.Thread.Sleep(1000);
                     }
                     else {
@@ -408,14 +425,15 @@ namespace BotMod {
         }
 
         public static void InitialiseLandscapeData() {
-            using (StreamReader fileReader = new StreamReader(@"C:\Users\Conor\Documents\boarddata.txt")) {
+            string filePath = System.IO.Path.GetFullPath("boarddata.txt");
+            using (StreamReader fileReader = new StreamReader(filePath)) {
                 string line;
                 int numeric = 0;
                 int k = GlobalVars.landscapeSize - 1;
                 int i = 0;
                 int j = 0;
                 do {
-                    if (i == k) {
+                    if (i == k + 1) {
                         break;
                     }
                     line = fileReader.ReadLine();
@@ -427,7 +445,7 @@ namespace BotMod {
                             j = 0;
                             i++;
                         }
-                        else {
+                        else { 
                             j++;
                         }
                     }
@@ -446,6 +464,10 @@ namespace BotMod {
                     }
                 }
             }
+            GlobalVars.pplToSave.person1 = GlobalVars.personCell;
+            GlobalVars.pplToSave.person2 = GlobalVars.personCell;
+            GlobalVars.pplToSave.person3 = GlobalVars.personCell;
+            GlobalVars.pplToSave.person4 = GlobalVars.personCell;
         }
 
         public static void EmptyLandscape() {
@@ -459,10 +481,10 @@ namespace BotMod {
 
         public static void InitialiseLandscape() {
             GlobalVars.landscape[GlobalVars.RobLoc.currentX, GlobalVars.RobLoc.currentY] = Convert.ToChar(GlobalVars.robotCell);
-            GlobalVars.landscape[0, 2] = Convert.ToChar(GlobalVars.personCell);
-            GlobalVars.landscape[2, 7] = Convert.ToChar(GlobalVars.personCell);
-            GlobalVars.landscape[6, 4] = Convert.ToChar(GlobalVars.personCell);
-            GlobalVars.landscape[6, 9] = Convert.ToChar(GlobalVars.personCell);
+            GlobalVars.landscape[0, 2] = Convert.ToChar(GlobalVars.pplToSave.person1);
+            GlobalVars.landscape[2, 7] = Convert.ToChar(GlobalVars.pplToSave.person2);
+            GlobalVars.landscape[6, 4] = Convert.ToChar(GlobalVars.pplToSave.person3);
+            GlobalVars.landscape[6, 9] = Convert.ToChar(GlobalVars.pplToSave.person4);
             GlobalVars.landscape[3, 6] = Convert.ToChar("B");
         }
 
@@ -503,7 +525,6 @@ namespace BotMod {
         }
 
         public static void DisplayInfo() {
-            //
             Console.WriteLine();
             Console.ForegroundColor = ConsoleColor.White;
             Console.Write("Power Remaining: ");
@@ -511,42 +532,36 @@ namespace BotMod {
             Console.Write(GlobalVars.powerRemaining);
             Console.ForegroundColor = ConsoleColor.White;
             Console.WriteLine();
-            //
             Console.Write("Traction type: ");
             Console.ForegroundColor = ConsoleColor.Red;
             Console.Write(GlobalVars.TractionType);
             Console.ForegroundColor = ConsoleColor.White;
             Console.WriteLine();
-            //
             Console.ForegroundColor = ConsoleColor.White;
             Console.Write("Passenger bay 1: ");
             Console.ForegroundColor = ConsoleColor.Red;
-            Console.Write(GlobalVars.PasBay.Slot1);
+            Console.Write(GlobalVars.passengerBay[0]);
             Console.ForegroundColor = ConsoleColor.White;
             Console.WriteLine();
-            if (GlobalVars.PassengerBaySize == "Med") {
-                //
+            if (GlobalVars.passengerBaySize == "Med") {
                 Console.Write("Passenger bay 2: ");
                 Console.ForegroundColor = ConsoleColor.Red;
-                Console.Write(GlobalVars.PasBay.Slot2);
+                Console.Write(GlobalVars.passengerBay[1]);
                 Console.ForegroundColor = ConsoleColor.White;
                 Console.WriteLine();
             }
-            else if (GlobalVars.PassengerBaySize == "Large") {
-                //
+            else if (GlobalVars.passengerBaySize == "Large") {
                 Console.Write("Passenger bay 2: ");
                 Console.ForegroundColor = ConsoleColor.Red;
-                Console.Write(GlobalVars.PasBay.Slot2);
+                Console.Write(GlobalVars.passengerBay[1]);
                 Console.ForegroundColor = ConsoleColor.White;
                 Console.WriteLine();
-                //
                 Console.Write("Passenger bay 3: ");
                 Console.ForegroundColor = ConsoleColor.Red;
-                Console.Write(GlobalVars.PasBay.Slot3);
+                Console.Write(GlobalVars.passengerBay[2]);
                 Console.ForegroundColor = ConsoleColor.White;
                 Console.WriteLine();
             }
-            //
             Console.Write("People saved: ");
             Console.ForegroundColor = ConsoleColor.Red;
             Console.Write(GlobalVars.pplSaved);
@@ -559,14 +574,14 @@ namespace BotMod {
             Console.ForegroundColor = ConsoleColor.White;
             bool moveIsValid = false;
             bool moveIsWithinBounds = false;
-            string entermove;
+            string inputMove;
             do {
                 do {
                     Console.WriteLine();
                     Console.WriteLine("Please enter a move for {0} to take:", GlobalVars.robotsName);
-                    entermove = Console.ReadLine();
-                    entermove = entermove.ToUpper();
-                    if (entermove == "N" || entermove == "E" || entermove == "S" || entermove == "W") {
+                    inputMove = Console.ReadLine();
+                    inputMove = inputMove.ToUpper();
+                    if (inputMove == "N" || inputMove == "E" || inputMove == "S" || inputMove == "W") {
                         moveIsValid = true;
                     }
                     else {
@@ -578,7 +593,7 @@ namespace BotMod {
                         Console.WriteLine();
                     }
                 } while (!moveIsValid);
-                if (GlobalVars.RobLoc.currentX == 0 && entermove == "N") {
+                if (GlobalVars.RobLoc.currentX == 0 && inputMove == "N") {
                     moveIsWithinBounds = false;
                     Console.ForegroundColor = ConsoleColor.Red;
                     Console.Write("Error:");
@@ -586,7 +601,7 @@ namespace BotMod {
                     Console.Write(" Move invalid! You have attempted to move out of the grid. Please try again.");
                     Console.WriteLine();
                 }
-                else if (GlobalVars.RobLoc.currentY == 0 && entermove == "W") {
+                else if (GlobalVars.RobLoc.currentY == 0 && inputMove == "W") {
                     moveIsWithinBounds = false;
                     Console.ForegroundColor = ConsoleColor.Red;
                     Console.Write("Error:");
@@ -594,7 +609,7 @@ namespace BotMod {
                     Console.Write(" Move invalid! You have attempted to move out of the grid. Please try again.");
                     Console.WriteLine();
                 }
-                else if (GlobalVars.RobLoc.currentY == 9 && entermove == "E") {
+                else if (GlobalVars.RobLoc.currentY == 9 && inputMove == "E") {
                     moveIsWithinBounds = false;
                     Console.ForegroundColor = ConsoleColor.Red;
                     Console.Write("Error:");
@@ -602,7 +617,7 @@ namespace BotMod {
                     Console.Write(" Move invalid! You have attempted to move out of the grid. Please try again.");
                     Console.WriteLine();
                 }
-                else if (GlobalVars.RobLoc.currentX == 9 && entermove == "S") {
+                else if (GlobalVars.RobLoc.currentX == 9 && inputMove == "S") {
                     moveIsWithinBounds = false;
                     Console.ForegroundColor = ConsoleColor.Red;
                     Console.Write("Error:");
@@ -611,16 +626,16 @@ namespace BotMod {
                     Console.WriteLine();
                 }
                 else {
-                    Console.WriteLine("Move Valid! Moving {0} in the direction of {1}.", GlobalVars.robotsName, entermove);
+                    Console.WriteLine("Move Valid! Moving {0} in the direction of {1}.", GlobalVars.robotsName, inputMove);
                     moveIsWithinBounds = true;
                 }
             } while (!moveIsWithinBounds);
-            move = entermove;
+            move = inputMove;
             return move;
         }
 
         public static void MoveRobot(string move) {
-            bool slot2WasFilled = false;
+            bool largestSlotIsFilled = false;
             GlobalVars.RobLoc.newX = GlobalVars.RobLoc.currentX;
             GlobalVars.RobLoc.newY = GlobalVars.RobLoc.currentY;
             if (move == "N") {
@@ -635,94 +650,177 @@ namespace BotMod {
             else if (move == "W") {
                 GlobalVars.RobLoc.newY--;
             }
-            GlobalVars.powerRemaining = GlobalVars.powerRemaining - 1;
-            if (GlobalVars.PasBay.Slot2 == null) {
-                PickUpPerson(move);
-            }
-            else if (GlobalVars.PasBay.Slot2 != null) {
-                slot2WasFilled = true;
+            UpdatePowerRemaining();
+            if (GlobalVars.passengerBay[GlobalVars.largestBay] == null) {
+                largestSlotIsFilled = PickUpPerson(move);
             }
             DropPeople(move);
-            EraseRobot(slot2WasFilled);
+            EraseRobot(largestSlotIsFilled);
             GlobalVars.RobLoc.currentX = GlobalVars.RobLoc.newX;
             GlobalVars.RobLoc.currentY = GlobalVars.RobLoc.newY;
             ReplaceRobot();
         }
 
-        public static void PickUpPerson(string move) {
+        public static void UpdatePowerRemaining() {
+            if (GlobalVars.passengerBaySize == "Med") {
+                GlobalVars.powerRemaining = GlobalVars.powerRemaining - 1;
+            }
+            else if (GlobalVars.passengerBaySize == "Large") {
+                GlobalVars.powerRemaining = GlobalVars.powerRemaining - 2;
+            }
+            string currentSquare = GlobalVars.landscapeData[GlobalVars.RobLoc.currentX, GlobalVars.RobLoc.currentY];
+            if (GlobalVars.TractionType == "Wheels") {
+                if (currentSquare == "G") {
+                    GlobalVars.powerRemaining = GlobalVars.powerRemaining - 1;
+                }
+                else if (currentSquare == "R") {
+                    GlobalVars.powerRemaining = GlobalVars.powerRemaining - 2;
+                }
+                else if (currentSquare == "W") {
+                    GlobalVars.powerRemaining = GlobalVars.powerRemaining - 3;
+                }
+            }
+            else if (GlobalVars.TractionType == "Tracks") {
+                if (currentSquare == "G") {
+                    GlobalVars.powerRemaining = GlobalVars.powerRemaining - 2;
+                }
+                else if (currentSquare == "R") {
+                    GlobalVars.powerRemaining = GlobalVars.powerRemaining - 1;
+                }
+                else if (currentSquare == "W") {
+                    GlobalVars.powerRemaining = GlobalVars.powerRemaining - 2;
+                }
+            }
+            else if (GlobalVars.TractionType == "Skis") {
+                if (currentSquare == "G") {
+                    GlobalVars.powerRemaining = GlobalVars.powerRemaining - 2;
+                }
+                else if (currentSquare == "R") {
+                    GlobalVars.powerRemaining = GlobalVars.powerRemaining - 3;
+                }
+                else if (currentSquare == "W") {
+                    GlobalVars.powerRemaining = GlobalVars.powerRemaining - 1;
+                }
+            }
+        }
+
+        public static bool PickUpPerson(string move) {
+            bool largestSlotIsFilled = false;
             if (GlobalVars.landscape[GlobalVars.RobLoc.newX, GlobalVars.RobLoc.newY] == Convert.ToChar(GlobalVars.personCell)) {
-                if (GlobalVars.PasBay.Slot1 == null) {
-                    GlobalVars.PasBay.Slot1 = GlobalVars.personCell;
+                if (GlobalVars.passengerBaySize == "Small") {
+                    if (GlobalVars.passengerBay[0] == null) {
+                        GlobalVars.passengerBay[0] = GlobalVars.personCell;
+                        largestSlotIsFilled = true;
+                    }
                 }
-                else if (GlobalVars.PasBay.Slot2 == null) {
-                    GlobalVars.PasBay.Slot2 = GlobalVars.personCell;
+                else if (GlobalVars.passengerBaySize == "Med") {
+                    if (GlobalVars.passengerBay[0] == null) {
+                        GlobalVars.passengerBay[0] = GlobalVars.personCell;
+                    }
+                    else if (GlobalVars.passengerBay[1] == null) {
+                        GlobalVars.passengerBay[1] = GlobalVars.personCell;
+                        largestSlotIsFilled = true;
+                    }
+                }
+                else if (GlobalVars.passengerBaySize == "Large") {
+                    if (GlobalVars.passengerBay[0] == null) {
+                        GlobalVars.passengerBay[0] = GlobalVars.personCell;
+                    }
+                    else if (GlobalVars.passengerBay[1] == null) {
+                        GlobalVars.passengerBay[1] = GlobalVars.personCell;
+                    }
+                    else if (GlobalVars.passengerBay[2] == null) {
+                        GlobalVars.passengerBay[2] = GlobalVars.personCell;
+                        largestSlotIsFilled = true;
+                    }
+                }
+                if (GlobalVars.landscape[GlobalVars.RobLoc.newX, GlobalVars.RobLoc.newY] == GlobalVars.landscape[0, 2]) {
+                    if (!GlobalVars.personIsSaved.person1) {
+                        GlobalVars.personIsSaved.person1 = true;
+                    }
+                }
+                else if (GlobalVars.landscape[GlobalVars.RobLoc.newX, GlobalVars.RobLoc.newY] == GlobalVars.landscape[2, 7]) {
+                    if (!GlobalVars.personIsSaved.person2) {
+                        GlobalVars.personIsSaved.person2 = true;
+                    }
+                }
+                else if (GlobalVars.landscape[GlobalVars.RobLoc.newX, GlobalVars.RobLoc.newY] == GlobalVars.landscape[6, 4]) {
+                    if (!GlobalVars.personIsSaved.person3) {
+                        GlobalVars.personIsSaved.person3 = true;
+                    }
+                }
+                else if (GlobalVars.landscape[GlobalVars.RobLoc.newX, GlobalVars.RobLoc.newY] == GlobalVars.landscape[6, 9]) {
+                    if (!GlobalVars.personIsSaved.person4) {
+                        GlobalVars.personIsSaved.person4 = true;
+                    }
                 }
             }
-            if (GlobalVars.landscape[GlobalVars.RobLoc.newX, GlobalVars.RobLoc.newY] == GlobalVars.landscape[0, 2]) {
-                GlobalVars.personIsSaved.person1 = true;
-            }
-            else if (GlobalVars.landscape[GlobalVars.RobLoc.newX, GlobalVars.RobLoc.newY] == GlobalVars.landscape[2, 7]) {
-                GlobalVars.personIsSaved.person2 = true;
-            }
-            else if (GlobalVars.landscape[GlobalVars.RobLoc.newX, GlobalVars.RobLoc.newY] == GlobalVars.landscape[6, 4]) {
-                GlobalVars.personIsSaved.person3 = true;
-            }
-            else if (GlobalVars.landscape[GlobalVars.RobLoc.newX, GlobalVars.RobLoc.newY] == GlobalVars.landscape[6, 9]) {
-                GlobalVars.personIsSaved.person4 = true;
-            }
+            return largestSlotIsFilled;
         }
 
         public static void DropPeople(string move) {
             if (GlobalVars.landscape[GlobalVars.RobLoc.newX, GlobalVars.RobLoc.newY] == Convert.ToChar("B")) {
-                if (GlobalVars.PasBay.Slot1 == GlobalVars.personCell || GlobalVars.PasBay.Slot2 == GlobalVars.personCell) {
-                    if (GlobalVars.PasBay.Slot2 == GlobalVars.personCell) {
-                        GlobalVars.PasBay.Slot2 = null;
-                        GlobalVars.PasBay.Slot1 = null;
-                        GlobalVars.pplSaved = GlobalVars.pplSaved + 2;
+                if (GlobalVars.passengerBay[0] == GlobalVars.personCell) {
+                    GlobalVars.passengerBay[0] = null;
+                    GlobalVars.pplSaved++;
+                }
+                if (GlobalVars.passengerBaySize == "Med" || GlobalVars.passengerBaySize == "Large") {
+                    if (GlobalVars.passengerBaySize == "Med") {
+                        if (GlobalVars.passengerBay[1] == GlobalVars.personCell) {
+                            GlobalVars.passengerBay[1] = null;
+                            GlobalVars.pplSaved++;
+                        }
                     }
-                    else if (GlobalVars.PasBay.Slot1 == GlobalVars.personCell) {
-                        GlobalVars.PasBay.Slot1 = null;
-                        GlobalVars.pplSaved = GlobalVars.pplSaved + 1;
+                    else if (GlobalVars.passengerBaySize == "Large") {
+                        if (GlobalVars.passengerBay[2] == GlobalVars.personCell) {
+                            GlobalVars.passengerBay[1] = null;
+                            GlobalVars.passengerBay[2] = null;
+                            GlobalVars.pplSaved+=2;
+                        }
+                        else if (GlobalVars.passengerBay[1] == GlobalVars.personCell) {
+                                GlobalVars.passengerBay[1] = null;
+                                GlobalVars.pplSaved++;
+                        }
                     }
                 }
             }
         }
 
-        public static void EraseRobot(bool slot2WasFilled) {
-            if (slot2WasFilled == true) {
+        public static void EraseRobot(bool largestSlotIsFilled) {
+            if (largestSlotIsFilled) {
                 if (GlobalVars.landscape[GlobalVars.RobLoc.currentX, GlobalVars.RobLoc.currentY] == GlobalVars.landscape[3, 6]) {
                     GlobalVars.landscape[GlobalVars.RobLoc.currentX, GlobalVars.RobLoc.currentY] = Convert.ToChar("B");
                 }
                 else if (GlobalVars.landscape[GlobalVars.RobLoc.currentX, GlobalVars.RobLoc.currentY] == GlobalVars.landscape[0, 2]) {
-                    if (GlobalVars.personIsSaved.person1) {
-                        GlobalVars.landscape[0, 2] = Convert.ToChar(GlobalVars.emptyCell);
+                    if (!GlobalVars.personIsSaved.person1) {
+                        GlobalVars.pplToSave.person1 = GlobalVars.personCell;
                     }
                     else {
-                        GlobalVars.landscape[0, 2] = Convert.ToChar(GlobalVars.personCell);
+                        GlobalVars.pplToSave.person1 = GlobalVars.emptyCell;
                     }
                 }
                 else if (GlobalVars.landscape[GlobalVars.RobLoc.currentX, GlobalVars.RobLoc.currentY] == GlobalVars.landscape[2, 7]) {
-                    if (GlobalVars.personIsSaved.person2) {
-                        GlobalVars.landscape[2, 7] = Convert.ToChar(GlobalVars.emptyCell);
+                    if (!GlobalVars.personIsSaved.person2) {
+                        GlobalVars.pplToSave.person2 = GlobalVars.personCell;
                     }
                     else {
-                        GlobalVars.landscape[2, 7] = Convert.ToChar(GlobalVars.personCell);
+                        GlobalVars.pplToSave.person2 = GlobalVars.emptyCell;
                     }
                 }
                 else if (GlobalVars.landscape[GlobalVars.RobLoc.currentX, GlobalVars.RobLoc.currentY] == GlobalVars.landscape[6, 4]) {
-                    if (GlobalVars.personIsSaved.person3) {
-                        GlobalVars.landscape[6, 4] = Convert.ToChar(GlobalVars.emptyCell);
+                    if (!GlobalVars.personIsSaved.person3) {
+                        GlobalVars.pplToSave.person3 = GlobalVars.personCell;
                     }
                     else {
-                        GlobalVars.landscape[6, 4] = Convert.ToChar(GlobalVars.personCell);
+                        GlobalVars.pplToSave.person3 = GlobalVars.emptyCell;
                     }
                 }
                 else if (GlobalVars.landscape[GlobalVars.RobLoc.currentX, GlobalVars.RobLoc.currentY] == GlobalVars.landscape[6, 9]) {
-                    if (GlobalVars.personIsSaved.person4) {
-                        GlobalVars.landscape[6, 9] = Convert.ToChar(GlobalVars.emptyCell);
+                    if (!GlobalVars.personIsSaved.person4) {
+                        GlobalVars.pplToSave.person4 = GlobalVars.personCell;
                     }
                     else {
-                        GlobalVars.landscape[6, 9] = Convert.ToChar(GlobalVars.personCell);
+                        GlobalVars.pplToSave.person4 = GlobalVars.emptyCell;
                     }
                 }
                 else {
@@ -730,12 +828,7 @@ namespace BotMod {
                 }
             }
             else {
-                if (GlobalVars.landscape[GlobalVars.RobLoc.currentX, GlobalVars.RobLoc.currentY] == GlobalVars.landscape[3, 6]) {
-                    GlobalVars.landscape[3, 6] = Convert.ToChar("B");
-                }
-                else {
-                    GlobalVars.landscape[GlobalVars.RobLoc.currentX, GlobalVars.RobLoc.currentY] = Convert.ToChar(GlobalVars.emptyCell);
-                }
+                GlobalVars.landscape[GlobalVars.RobLoc.currentX, GlobalVars.RobLoc.currentY] = Convert.ToChar(GlobalVars.emptyCell);
             }
         }
 
@@ -809,21 +902,35 @@ namespace BotMod {
             Console.Clear();
             Console.ForegroundColor = ConsoleColor.Yellow;
             Console.WriteLine();
-            Console.WriteLine("Rules:                                                   ");
+            Console.WriteLine("Rules:                                                           ");
             Console.WriteLine();
             Console.ForegroundColor = ConsoleColor.White;
-            Console.WriteLine("1. The robot always starts in the top left of the grid.  ");
-            Console.WriteLine("2. The robot can move in 4 directions (N, E, S, W).      ");
-            Console.WriteLine("3. The robot cannot make diagonal moves.                 ");
-            Console.WriteLine("4. The robot cannot move beyond the edge of the grid.    ");
-            Console.WriteLine("5. The robot can carry two people in the passenger bay.  ");
-            Console.WriteLine("6. If there is no room in the passenger bay, the person  ");
-            Console.WriteLine("   will be left behind and won't be picked up            ");
-            Console.WriteLine("7. The robot has 60 power units.                         ");
-            Console.WriteLine("8. The player wins if all people are dropped off at base ");
-            Console.WriteLine("   camp before the robot runs out of power.              ");
-            Console.WriteLine("9. If the robot runs out of power before all players are ");
-            Console.WriteLine("   at the base, the player loses.                        ");
+            Console.WriteLine("1. The robot always starts in the top left of the grid.          ");
+            Console.WriteLine("2. The robot can move in 4 directions (N, E, S, W).              ");
+            Console.WriteLine("3. The robot cannot make diagonal moves.                         ");
+            Console.WriteLine("4. The robot cannot move beyond the edge of the grid.            ");
+            Console.WriteLine("5. The robot can carry one, two or three people in the           ");
+            Console.WriteLine("   passenger bay, depending on which size you are using:         ");
+            Console.WriteLine("   If you are using a small passenger bay, you get one slot.     ");
+            Console.WriteLine("   If you are using a medium passenger bay, you get two.         ");
+            Console.WriteLine("   ... And if you are using a large passenger bay, you get three!");
+            Console.WriteLine("    Each passenger bay size uses zero, one and two extra power   ");
+            Console.WriteLine("    units respectively.                                          ");
+            Console.WriteLine("6. There are three traction types: Wheels, Tracks and Skis.      ");
+            Console.WriteLine("   This table gives all information you need about traction types:");
+            Console.WriteLine();
+            Console.WriteLine("   Traction type | On Grass | On Rocks | On Ice  ");
+            Console.WriteLine("   Wheels        | -1 Power | -2 Power | -3 Power");
+            Console.WriteLine("   Tracks        | -2 Power | -1 Power | -2 Power");
+            Console.WriteLine("   Skis          | -2 Power | -3 Power | -1 Power");
+            Console.WriteLine();
+            Console.WriteLine("7. If there is no room in the passenger bay, the person will be  ");
+            Console.WriteLine("   left behind and won't be picked up.                           ");
+            Console.WriteLine("8. The robot has 150 power units.                                ");
+            Console.WriteLine("9. The player wins if all people are dropped off at base         ");
+            Console.WriteLine("   camp before the robot runs out of power.                      ");
+            Console.WriteLine("10 . If the robot runs out of power before all players are       ");
+            Console.WriteLine("   at the base, the player loses.                                ");
             Console.WriteLine();
             Console.WriteLine("Each piece on the board and the meaning for it:");
             Console.WriteLine();
@@ -835,24 +942,6 @@ namespace BotMod {
             Console.WriteLine();
             Console.WriteLine("Press any key to continue. . .");
             Console.ReadKey(true);
-        }
-
-        public static void TitleScreen() {
-            Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.Title = ("BotMod");
-            Console.WriteLine(@"-----------------------------------------------------------------------");
-            Console.WriteLine(@"  ________  ________  _________  _____ ______   ________  ________     ");
-            Console.WriteLine(@" |\   __  \|\   __  \|\___   ___\\   _ \  _   \|\   __  \|\   ___ \    ");
-            Console.WriteLine(@" \ \  \|\ /\ \  \|\  \|___ \  \_\ \  \\\__\ \  \ \  \|\  \ \  \_|\ \   ");
-            Console.WriteLine(@"  \ \   __  \ \  \\\  \   \ \  \ \ \  \\|__| \  \ \  \\\  \ \  \ \\ \  ");
-            Console.WriteLine(@"   \ \  \|\  \ \  \\\  \   \ \  \ \ \  \    \ \  \ \  \\\  \ \  \_\\ \ ");
-            Console.WriteLine(@"    \ \_______\ \_______\   \ \__\ \ \__\    \ \__\ \_______\ \_______\");
-            Console.WriteLine(@"     \|_______|\|_______|    \|__|  \|__|     \|__|\|_______|\|_______|");
-            Console.WriteLine(@"-----------------------------------------------------------------------");
-            Console.WriteLine();
-            Console.WriteLine("A Robot Game");
-            Console.WriteLine();
-            Console.ForegroundColor = ConsoleColor.White;
         }
     }
 }
