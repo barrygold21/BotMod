@@ -13,7 +13,7 @@ namespace BotMod {
         public static int largestBay = 0;
         public const int landscapeSize = 10;
         public static string[,] landscapeData = new string[landscapeSize, landscapeSize];
-        public static char[,] landscape = new char[landscapeSize, landscapeSize];
+        public static string[,] landscape = new string[landscapeSize, landscapeSize];
         public static readonly string robotCell = "R";
         public static readonly string emptyCell = ".";
         public static readonly string personCell = "P";
@@ -22,6 +22,7 @@ namespace BotMod {
         public static string TractionType = "Wheels";
         public static string passengerBaySize = "Small";
         public struct RobLocation {
+            public int startingX, startingY;
             public int currentX, currentY;
             public int newX, newY;
         }
@@ -460,16 +461,12 @@ namespace BotMod {
         }
 
         public static void CompleteInitialisations() {
-            int k = GlobalVars.landscapeSize;
-            for (int i = 0; i < k; i++) {
-                for (int j = 0; j < k; j++) {
-                    if (GlobalVars.landscape[i, j] == Convert.ToChar(GlobalVars.robotCell)) {
-                        GlobalVars.RobLoc.currentX = i;
-                        GlobalVars.RobLoc.currentY = j;
-                        break;
-                    }
-                }
-            }
+            GlobalVars.RobLoc.startingX = 0;
+            GlobalVars.RobLoc.startingY = 0;
+            GlobalVars.RobLoc.currentX = GlobalVars.RobLoc.startingX;
+            GlobalVars.RobLoc.currentY = GlobalVars.RobLoc.startingY;
+            GlobalVars.pplSaved = 0;
+            GlobalVars.powerRemaining = 150;
             GlobalVars.pplToSave.person1 = GlobalVars.personCell;
             GlobalVars.pplToSave.person2 = GlobalVars.personCell;
             GlobalVars.pplToSave.person3 = GlobalVars.personCell;
@@ -480,18 +477,18 @@ namespace BotMod {
             int k = GlobalVars.landscapeSize;
             for (int i = 0; i < k; i++) {
                 for (int j = 0; j < k; j++) {
-                    GlobalVars.landscape[i, j] = Convert.ToChar(GlobalVars.emptyCell);
+                    GlobalVars.landscape[i, j] = GlobalVars.emptyCell;
                 }
             }
         }
 
         public static void InitialiseLandscape() {
-            GlobalVars.landscape[GlobalVars.RobLoc.currentX, GlobalVars.RobLoc.currentY] = Convert.ToChar(GlobalVars.robotCell);
-            GlobalVars.landscape[0, 2] = Convert.ToChar(GlobalVars.pplToSave.person1);
-            GlobalVars.landscape[2, 7] = Convert.ToChar(GlobalVars.pplToSave.person2);
-            GlobalVars.landscape[6, 4] = Convert.ToChar(GlobalVars.pplToSave.person3);
-            GlobalVars.landscape[6, 9] = Convert.ToChar(GlobalVars.pplToSave.person4);
-            GlobalVars.landscape[3, 6] = Convert.ToChar("B");
+            GlobalVars.landscape[GlobalVars.RobLoc.currentX, GlobalVars.RobLoc.currentY] = GlobalVars.robotCell;
+            GlobalVars.landscape[0, 2] = GlobalVars.pplToSave.person1;
+            GlobalVars.landscape[2, 7] = GlobalVars.pplToSave.person2;
+            GlobalVars.landscape[6, 4] = GlobalVars.pplToSave.person3;
+            GlobalVars.landscape[6, 9] = GlobalVars.pplToSave.person4;
+            GlobalVars.landscape[3, 6] = "B";
         }
 
         public static void DrawLandscape() {
@@ -659,7 +656,7 @@ namespace BotMod {
             CalculateSlide(move);
             UpdatePowerRemaining();
             if (GlobalVars.passengerBay[GlobalVars.largestBay] == null) {
-                largestSlotIsFilled = PickUpPerson(move);
+                largestSlotIsFilled = PickUpPerson();
             }
             else if (GlobalVars.passengerBay[GlobalVars.largestBay] != null) {
                 largestSlotIsFilled = true;
@@ -781,9 +778,9 @@ namespace BotMod {
             }
         }
 
-        public static bool PickUpPerson(string move) {
+        public static bool PickUpPerson() {
             bool largestSlotIsFilled = false;
-            if (GlobalVars.landscape[GlobalVars.RobLoc.newX, GlobalVars.RobLoc.newY] == Convert.ToChar(GlobalVars.personCell)) {
+            if (GlobalVars.landscape[GlobalVars.RobLoc.newX, GlobalVars.RobLoc.newY] == GlobalVars.personCell) {
                 if (GlobalVars.passengerBaySize == "Small") {
                     if (GlobalVars.passengerBay[0] == null) {
                         GlobalVars.passengerBay[0] = GlobalVars.personCell;
@@ -836,7 +833,7 @@ namespace BotMod {
         }
 
         public static void DropPeople(string move) {
-            if (GlobalVars.landscape[GlobalVars.RobLoc.newX, GlobalVars.RobLoc.newY] == Convert.ToChar("B")) {
+            if (GlobalVars.landscape[GlobalVars.RobLoc.newX, GlobalVars.RobLoc.newY] == "B") {
                 if (GlobalVars.passengerBay[0] == GlobalVars.personCell) {
                     GlobalVars.passengerBay[0] = null;
                     GlobalVars.pplSaved++;
@@ -866,54 +863,54 @@ namespace BotMod {
         public static void EraseRobot(bool largestSlotIsFilled) {
             if (largestSlotIsFilled) {
                 if (GlobalVars.landscape[GlobalVars.RobLoc.currentX, GlobalVars.RobLoc.currentY] == GlobalVars.landscape[3, 6]) {
-                    GlobalVars.landscape[GlobalVars.RobLoc.currentX, GlobalVars.RobLoc.currentY] = Convert.ToChar("B");
+                    GlobalVars.landscape[GlobalVars.RobLoc.currentX, GlobalVars.RobLoc.currentY] = "B";
                 }
                 else if (GlobalVars.landscape[GlobalVars.RobLoc.currentX, GlobalVars.RobLoc.currentY] == GlobalVars.landscape[0, 2]) {
                     if (!GlobalVars.personIsSaved.person1) {
-                        GlobalVars.landscape[0, 2] = Convert.ToChar(GlobalVars.personCell);
+                        GlobalVars.landscape[0, 2] = GlobalVars.personCell;
                     }
                     else {
-                        GlobalVars.landscape[0, 2] = Convert.ToChar(GlobalVars.emptyCell);
+                        GlobalVars.landscape[0, 2] = GlobalVars.emptyCell;
                     }
                 }
                 else if (GlobalVars.landscape[GlobalVars.RobLoc.currentX, GlobalVars.RobLoc.currentY] == GlobalVars.landscape[2, 7]) {
                     if (!GlobalVars.personIsSaved.person2) {
-                        GlobalVars.landscape[2, 7] = Convert.ToChar(GlobalVars.personCell);
+                        GlobalVars.landscape[2, 7] = GlobalVars.personCell;
                     }
                     else {
-                        GlobalVars.landscape[2, 7] = Convert.ToChar(GlobalVars.emptyCell);
+                        GlobalVars.landscape[2, 7] = GlobalVars.emptyCell;
                     }
                 }
                 else if (GlobalVars.landscape[GlobalVars.RobLoc.currentX, GlobalVars.RobLoc.currentY] == GlobalVars.landscape[6, 4]) {
                     if (!GlobalVars.personIsSaved.person3) {
-                        GlobalVars.landscape[6, 4] = Convert.ToChar(GlobalVars.personCell);
+                        GlobalVars.landscape[6, 4] = GlobalVars.personCell;
                     }
                     else {
-                        GlobalVars.landscape[6, 4] = Convert.ToChar(GlobalVars.emptyCell);
+                        GlobalVars.landscape[6, 4] = GlobalVars.emptyCell;
                     }
                 }
                 else if (GlobalVars.landscape[GlobalVars.RobLoc.currentX, GlobalVars.RobLoc.currentY] == GlobalVars.landscape[6, 9]) {
                     if (!GlobalVars.personIsSaved.person4) {
-                        GlobalVars.landscape[6, 9] = Convert.ToChar(GlobalVars.personCell);
+                        GlobalVars.landscape[6, 9] = GlobalVars.personCell;
                     }
                     else {
-                        GlobalVars.landscape[6, 9] = Convert.ToChar(GlobalVars.emptyCell);
+                        GlobalVars.landscape[6, 9] = GlobalVars.emptyCell;
                     }
                 }
                 else {
-                    GlobalVars.landscape[GlobalVars.RobLoc.currentX, GlobalVars.RobLoc.currentY] = Convert.ToChar(GlobalVars.emptyCell);
+                    GlobalVars.landscape[GlobalVars.RobLoc.currentX, GlobalVars.RobLoc.currentY] = GlobalVars.emptyCell;
                 }
             }
             else if (GlobalVars.landscape[GlobalVars.RobLoc.currentX, GlobalVars.RobLoc.currentY] == GlobalVars.landscape[3, 6]) {
-                GlobalVars.landscape[GlobalVars.RobLoc.currentX, GlobalVars.RobLoc.currentY] = Convert.ToChar("B");
+                GlobalVars.landscape[GlobalVars.RobLoc.currentX, GlobalVars.RobLoc.currentY] = "B";
             }
             else {
-                GlobalVars.landscape[GlobalVars.RobLoc.currentX, GlobalVars.RobLoc.currentY] = Convert.ToChar(GlobalVars.emptyCell);
+                GlobalVars.landscape[GlobalVars.RobLoc.currentX, GlobalVars.RobLoc.currentY] = GlobalVars.emptyCell;
             }
         }
 
         public static void ReplaceRobot() {
-            GlobalVars.landscape[GlobalVars.RobLoc.currentX, GlobalVars.RobLoc.currentY] = Convert.ToChar(GlobalVars.robotCell);
+            GlobalVars.landscape[GlobalVars.RobLoc.currentX, GlobalVars.RobLoc.currentY] = GlobalVars.robotCell;
         }
 
         public static void YouWon() {
