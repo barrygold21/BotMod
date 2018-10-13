@@ -196,6 +196,8 @@ namespace BotMod {
                         Console.ForegroundColor = ConsoleColor.Yellow;
                         Console.Write("Robot's name must be more than three characters long and start with a capital letter.");
                         Console.ForegroundColor = ConsoleColor.White;
+                        System.Threading.Thread.Sleep(800);
+                        GlobalVars.robotsName = "Fred";
                         nameValid = false;
                     }
                     else if (rbFChr != rbFChrUpper) {
@@ -205,6 +207,8 @@ namespace BotMod {
                         Console.Write("Robot's name must start with a capital letter.");
                         Console.ForegroundColor = ConsoleColor.White;
                         Console.WriteLine();
+                        System.Threading.Thread.Sleep(800);
+                        GlobalVars.robotsName = "Fred";
                         nameValid = false;
                     }
                     else if (GlobalVars.robotsName.Length < 3) {
@@ -214,6 +218,8 @@ namespace BotMod {
                         Console.Write("Robot's name must be more than three characters long.");
                         Console.ForegroundColor = ConsoleColor.White;
                         Console.WriteLine();
+                        System.Threading.Thread.Sleep(800);
+                        GlobalVars.robotsName = "Fred";
                         nameValid = false;
                     }
                     else {
@@ -283,13 +289,13 @@ namespace BotMod {
                         inputValid = true;
                         GlobalVars.TractionType = "Tracks";
                         Console.WriteLine("Traction type successfully set to {0}", GlobalVars.TractionType);
-                        System.Threading.Thread.Sleep(1000);
+                        System.Threading.Thread.Sleep(800);
                     }
                     else if (mCho == 3) {
                         inputValid = true;
                         GlobalVars.TractionType = "Skis";
                         Console.WriteLine("Traction type successfully set to {0}", GlobalVars.TractionType);
-                        System.Threading.Thread.Sleep(1000);
+                        System.Threading.Thread.Sleep(800);
                     }
                     else {
                         Console.ForegroundColor = ConsoleColor.Red;
@@ -298,7 +304,7 @@ namespace BotMod {
                         Console.Write("Valid choice not entered. Please enter an integer between 1 and 3.");
                         Console.ForegroundColor = ConsoleColor.White;
                         Console.WriteLine();
-                        System.Threading.Thread.Sleep(1000);
+                        System.Threading.Thread.Sleep(800);
                     }
                 }
                 else {
@@ -308,7 +314,7 @@ namespace BotMod {
                     Console.Write("Please enter a number!");
                     Console.ForegroundColor = ConsoleColor.White;
                     Console.WriteLine();
-                    System.Threading.Thread.Sleep(1000);
+                    System.Threading.Thread.Sleep(800);
                 }
             } while (!inputValid);
         }
@@ -341,21 +347,21 @@ namespace BotMod {
                         GlobalVars.passengerBaySize = "Small";
                         GlobalVars.largestBay = 0;
                         Console.WriteLine("Passenger bay size sucessfully set to {0}", GlobalVars.passengerBaySize);
-                        System.Threading.Thread.Sleep(1000);
+                        System.Threading.Thread.Sleep(800);
                     }
                     else if (mCho == 2) {
                         inputValid = true;
                         GlobalVars.passengerBaySize = "Med";
                         GlobalVars.largestBay = 1;
                         Console.WriteLine("Passenger bay size sucessfully set to {0}", GlobalVars.passengerBaySize);
-                        System.Threading.Thread.Sleep(1000);
+                        System.Threading.Thread.Sleep(800);
                     }
                     else if (mCho == 3) {
                         inputValid = true;
                         GlobalVars.passengerBaySize = "Large";
                         GlobalVars.largestBay = 2;
                         Console.WriteLine("Passenger bay size sucessfully set to {0}", GlobalVars.passengerBaySize);
-                        System.Threading.Thread.Sleep(1000);
+                        System.Threading.Thread.Sleep(800);
                     }
                     else {
                         Console.ForegroundColor = ConsoleColor.Red;
@@ -374,7 +380,7 @@ namespace BotMod {
                     Console.Write("Please enter a number!");
                     Console.ForegroundColor = ConsoleColor.White;
                     Console.WriteLine();
-                    System.Threading.Thread.Sleep(1000);
+                    System.Threading.Thread.Sleep(800);
                 }
             } while (!inputValid);
         }
@@ -392,7 +398,7 @@ namespace BotMod {
                 DisplayInfo();
                 string move = EnterMove();
                 Console.WriteLine();
-                System.Threading.Thread.Sleep(500);
+                System.Threading.Thread.Sleep(100);
                 MoveRobot(move);
                 Console.Clear();
                 if (GlobalVars.powerRemaining == 0 && GlobalVars.pplSaved == 4) {
@@ -445,7 +451,7 @@ namespace BotMod {
                             j = 0;
                             i++;
                         }
-                        else { 
+                        else {
                             j++;
                         }
                     }
@@ -634,7 +640,7 @@ namespace BotMod {
             return move;
         }
 
-        public static void MoveRobot(string move) {
+        public static void MoveRobot(string move) { 
             bool largestSlotIsFilled = false;
             GlobalVars.RobLoc.newX = GlobalVars.RobLoc.currentX;
             GlobalVars.RobLoc.newY = GlobalVars.RobLoc.currentY;
@@ -650,15 +656,86 @@ namespace BotMod {
             else if (move == "W") {
                 GlobalVars.RobLoc.newY--;
             }
+            CalculateSlide(move);
             UpdatePowerRemaining();
             if (GlobalVars.passengerBay[GlobalVars.largestBay] == null) {
                 largestSlotIsFilled = PickUpPerson(move);
+            }
+            else if (GlobalVars.passengerBay[GlobalVars.largestBay] != null) {
+                largestSlotIsFilled = true;
             }
             DropPeople(move);
             EraseRobot(largestSlotIsFilled);
             GlobalVars.RobLoc.currentX = GlobalVars.RobLoc.newX;
             GlobalVars.RobLoc.currentY = GlobalVars.RobLoc.newY;
             ReplaceRobot();
+        }
+
+        public static void CalculateSlide(string move) {
+            if (GlobalVars.landscapeData[GlobalVars.RobLoc.newX, GlobalVars.RobLoc.newY] == "W") {
+                Random slideRNG = new Random();
+                int slide = slideRNG.Next(1, 17);
+                if (move == "N") {
+                    if (GlobalVars.RobLoc.newX - 1 != -1) {
+                        if (slide == 1) {
+                            GlobalVars.RobLoc.newX--;
+                            slide = slideRNG.Next(1, 33);
+                            if (GlobalVars.landscapeData[GlobalVars.RobLoc.newX, GlobalVars.RobLoc.newY] == "W") {
+                                if (GlobalVars.RobLoc.newX - 1 != -1) {
+                                    if (slide == 1) {
+                                        GlobalVars.RobLoc.newX--;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                else if (move == "E") {
+                    if (GlobalVars.RobLoc.newY + 1 != 10) {
+                        if (slide == 1) {
+                            GlobalVars.RobLoc.newY++;
+                            slide = slideRNG.Next(1, 33);
+                            if (GlobalVars.landscapeData[GlobalVars.RobLoc.newX, GlobalVars.RobLoc.newY] == "W") {
+                                if (GlobalVars.RobLoc.newY - 1 != 10) {
+                                    if (slide == 1) {
+                                        GlobalVars.RobLoc.newY++;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                else if (move == "S") {
+                    if (GlobalVars.RobLoc.newX + 1 != 10) {
+                        if (slide == 1) {
+                            GlobalVars.RobLoc.newX++;
+                            slide = slideRNG.Next(1, 33);
+                            if (GlobalVars.landscapeData[GlobalVars.RobLoc.newX, GlobalVars.RobLoc.newY] == "W") {
+                                if (GlobalVars.RobLoc.newX - 1 != 10) {
+                                    if (slide == 1) {
+                                        GlobalVars.RobLoc.newX++;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                else if (move == "W") {
+                    if (GlobalVars.RobLoc.newY - 1 != -1) {
+                        if (slide == 1) {
+                            GlobalVars.RobLoc.newY--;
+                            slide = slideRNG.Next(1, 33);
+                            if (GlobalVars.landscapeData[GlobalVars.RobLoc.newX, GlobalVars.RobLoc.newY] == "W") {
+                                if (GlobalVars.RobLoc.newY - 1 != -1) {
+                                    if (slide == 1) {
+                                        GlobalVars.RobLoc.newY--;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
 
         public static void UpdatePowerRemaining() {
@@ -775,11 +852,11 @@ namespace BotMod {
                         if (GlobalVars.passengerBay[2] == GlobalVars.personCell) {
                             GlobalVars.passengerBay[1] = null;
                             GlobalVars.passengerBay[2] = null;
-                            GlobalVars.pplSaved+=2;
+                            GlobalVars.pplSaved += 2;
                         }
                         else if (GlobalVars.passengerBay[1] == GlobalVars.personCell) {
-                                GlobalVars.passengerBay[1] = null;
-                                GlobalVars.pplSaved++;
+                            GlobalVars.passengerBay[1] = null;
+                            GlobalVars.pplSaved++;
                         }
                     }
                 }
@@ -793,39 +870,42 @@ namespace BotMod {
                 }
                 else if (GlobalVars.landscape[GlobalVars.RobLoc.currentX, GlobalVars.RobLoc.currentY] == GlobalVars.landscape[0, 2]) {
                     if (!GlobalVars.personIsSaved.person1) {
-                        GlobalVars.pplToSave.person1 = GlobalVars.personCell;
+                        GlobalVars.landscape[0, 2] = Convert.ToChar(GlobalVars.personCell);
                     }
                     else {
-                        GlobalVars.pplToSave.person1 = GlobalVars.emptyCell;
+                        GlobalVars.landscape[0, 2] = Convert.ToChar(GlobalVars.emptyCell);
                     }
                 }
                 else if (GlobalVars.landscape[GlobalVars.RobLoc.currentX, GlobalVars.RobLoc.currentY] == GlobalVars.landscape[2, 7]) {
                     if (!GlobalVars.personIsSaved.person2) {
-                        GlobalVars.pplToSave.person2 = GlobalVars.personCell;
+                        GlobalVars.landscape[2, 7] = Convert.ToChar(GlobalVars.personCell);
                     }
                     else {
-                        GlobalVars.pplToSave.person2 = GlobalVars.emptyCell;
+                        GlobalVars.landscape[2, 7] = Convert.ToChar(GlobalVars.emptyCell);
                     }
                 }
                 else if (GlobalVars.landscape[GlobalVars.RobLoc.currentX, GlobalVars.RobLoc.currentY] == GlobalVars.landscape[6, 4]) {
                     if (!GlobalVars.personIsSaved.person3) {
-                        GlobalVars.pplToSave.person3 = GlobalVars.personCell;
+                        GlobalVars.landscape[6, 4] = Convert.ToChar(GlobalVars.personCell);
                     }
                     else {
-                        GlobalVars.pplToSave.person3 = GlobalVars.emptyCell;
+                        GlobalVars.landscape[6, 4] = Convert.ToChar(GlobalVars.emptyCell);
                     }
                 }
                 else if (GlobalVars.landscape[GlobalVars.RobLoc.currentX, GlobalVars.RobLoc.currentY] == GlobalVars.landscape[6, 9]) {
                     if (!GlobalVars.personIsSaved.person4) {
-                        GlobalVars.pplToSave.person4 = GlobalVars.personCell;
+                        GlobalVars.landscape[6, 9] = Convert.ToChar(GlobalVars.personCell);
                     }
                     else {
-                        GlobalVars.pplToSave.person4 = GlobalVars.emptyCell;
+                        GlobalVars.landscape[6, 9] = Convert.ToChar(GlobalVars.emptyCell);
                     }
                 }
                 else {
                     GlobalVars.landscape[GlobalVars.RobLoc.currentX, GlobalVars.RobLoc.currentY] = Convert.ToChar(GlobalVars.emptyCell);
                 }
+            }
+            else if (GlobalVars.landscape[GlobalVars.RobLoc.currentX, GlobalVars.RobLoc.currentY] == GlobalVars.landscape[3, 6]) {
+                GlobalVars.landscape[GlobalVars.RobLoc.currentX, GlobalVars.RobLoc.currentY] = Convert.ToChar("B");
             }
             else {
                 GlobalVars.landscape[GlobalVars.RobLoc.currentX, GlobalVars.RobLoc.currentY] = Convert.ToChar(GlobalVars.emptyCell);
