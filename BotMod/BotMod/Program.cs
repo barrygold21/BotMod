@@ -20,7 +20,6 @@ namespace BotMod {
         public static string passengerBaySize = "Small";
         public struct RobLocation {
             public int currentX, currentY;
-            public int newX, newY;
         }
         public static RobLocation RobLoc = new RobLocation();
     }
@@ -573,34 +572,34 @@ namespace BotMod {
         }
 
         static void CalculateSlide(string move) {
-            if (GlobalVars.terrain[GlobalVars.RobLoc.newX, GlobalVars.RobLoc.newY] == "W") {
+            if (GlobalVars.terrain[GlobalVars.RobLoc.currentX, GlobalVars.RobLoc.currentY] == "W") {
                 Random slideRNG = new Random();
-                int slide = slideRNG.Next(1, 17);
+                int slide = slideRNG.Next(1, 9);
                 if (move == "N") {
-                    if (GlobalVars.RobLoc.newX - 1 != -1) {
+                    if (GlobalVars.RobLoc.currentX - 1 != -1) {
                         if (slide == 1) {
-                            GlobalVars.RobLoc.newX--;
+                            GlobalVars.RobLoc.currentX--;
                         }
                     }
                 }
                 else if (move == "E") {
-                    if (GlobalVars.RobLoc.newY + 1 != 10) {
+                    if (GlobalVars.RobLoc.currentY + 1 != 10) {
                         if (slide == 1) {
-                            GlobalVars.RobLoc.newY++;
+                            GlobalVars.RobLoc.currentY++;
                         }
                     }
                 }
                 else if (move == "S") {
-                    if (GlobalVars.RobLoc.newX + 1 != 10) {
+                    if (GlobalVars.RobLoc.currentX + 1 != 10) {
                         if (slide == 1) {
-                            GlobalVars.RobLoc.newX++;
+                            GlobalVars.RobLoc.currentX++;
                         }
                     }
                 }
                 else if (move == "W") {
-                    if (GlobalVars.RobLoc.newY - 1 != -1) {
+                    if (GlobalVars.RobLoc.currentY - 1 != -1) {
                         if (slide == 1) {
-                            GlobalVars.RobLoc.newY--;
+                            GlobalVars.RobLoc.currentY--;
                         }
                     }
                 }
@@ -667,6 +666,8 @@ namespace BotMod {
             bool userPlayAgain = false;
             do {
                 Console.Clear();
+                DrawLandscape();
+                DisplayInfo();
                 Console.WriteLine();
                 Console.WriteLine("Congratulations! You have succeeded in saving all the lost exlorers");
                 Console.WriteLine("and returning them to base camp.");
@@ -698,6 +699,8 @@ namespace BotMod {
             bool userPlayAgain = false;
             do {
                 Console.Clear();
+                DrawLandscape();
+                DisplayInfo();
                 Console.WriteLine();
                 Console.WriteLine("Ouch! Unfortunately, you didn't manage to save the explorers");
                 Console.WriteLine("and return them to base camp. Better luck next time!");
