@@ -104,6 +104,7 @@ namespace BotMod {
                             PlayGame();
                             break;
                         case 2:
+                            inputValid = false; // but actually true
                             ModifyRobot();
                             break;
                         case 3:
@@ -423,7 +424,7 @@ namespace BotMod {
             GlobalVars.landscape[2, 7] = 1;
             GlobalVars.landscape[6, 4] = 1;
             GlobalVars.landscape[6, 9] = 1;
-            GlobalVars.landscape[3, 6] = 1;
+            GlobalVars.landscape[3, 6] = 2;
         }
 
         static void DrawLandscape() {
@@ -440,45 +441,23 @@ namespace BotMod {
                         switch (GlobalVars.terrain[i, j]) {
                             case "G":
                                 Console.ForegroundColor = ConsoleColor.Green;
-                                switch (GlobalVars.landscape[i, j]) {
-                                    case 0:
-                                        Console.Write(".");
-                                        break;
-                                    case 1:
-                                        Console.Write("P");
-                                        break;
-                                    case 2:
-                                        Console.Write("B");
-                                        break;
-                                }
                                 break;
                             case "R":
                                 Console.ForegroundColor = ConsoleColor.DarkGray;
-                                switch (GlobalVars.landscape[i, j]) {
-                                    case 0:
-                                        Console.Write(".");
-                                        break;
-                                    case 1:
-                                        Console.Write("P");
-                                        break;
-                                    case 2:
-                                        Console.Write("B");
-                                        break;
-                                }
                                 break;
                             case "W":
                                 Console.ForegroundColor = ConsoleColor.Blue;
-                                switch (GlobalVars.landscape[i, j]) {
-                                    case 0:
-                                        Console.Write(".");
-                                        break;
-                                    case 1:
-                                        Console.Write("P");
-                                        break;
-                                    case 2:
-                                        Console.Write("B");
-                                        break;
-                                }
+                                break;
+                        }
+                        switch (GlobalVars.landscape[i, j]) {
+                            case 0:
+                                Console.Write(".");
+                                break;
+                            case 1:
+                                Console.Write("P");
+                                break;
+                            case 2:
+                                Console.Write("B");
                                 break;
                         }
                     }
