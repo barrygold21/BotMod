@@ -9,32 +9,20 @@ namespace BotMod {
 
     public class GlobalVars {
         public static string robotsName = "Fred";
-        public static string[] passengerBay = new string[3];
-        public static int largestBay = 0;
+        public static int passengers = 0;
+        public static int maxPassengers = 0;
         public const int landscapeSize = 10;
-        public static string[,] landscapeData = new string[landscapeSize, landscapeSize];
-        public static string[,] landscape = new string[landscapeSize, landscapeSize];
-        public static readonly string robotCell = "R";
-        public static readonly string emptyCell = ".";
-        public static readonly string personCell = "P";
+        public static string[,] terrain = new string[landscapeSize, landscapeSize];
+        public static int[,] landscape = new int[landscapeSize, landscapeSize];
         public static int powerRemaining = 150;
         public static int pplSaved = 0;
         public static string TractionType = "Wheels";
         public static string passengerBaySize = "Small";
         public struct RobLocation {
-            public int startingX, startingY;
             public int currentX, currentY;
             public int newX, newY;
         }
         public static RobLocation RobLoc = new RobLocation();
-        public struct PeopleSaved {
-            public bool person1, person2, person3, person4;
-        }
-        public static PeopleSaved personIsSaved = new PeopleSaved();
-        public struct PeopleToSave {
-            public string person1, person2, person3, person4;
-        }
-        public static PeopleToSave pplToSave = new PeopleToSave();
     }
 
     class Program {
@@ -66,65 +54,77 @@ namespace BotMod {
             MainMenu();
         }
 
-        public static void MainMenu() {
-            bool userQuit = false;
-            do {
-                bool mnuChoValid = false;
-                int mCho = 0;
-                do {
+        static void Error(int errorCode) {
+            switch (errorCode) {
+                case 1:
                     Console.Clear();
-                    Console.WriteLine("    Main Menu    ");
-                    Console.WriteLine();
-                    Console.WriteLine("~~~~~~~~~~~~~~~~~");
-                    Console.WriteLine(" 1. Play Game    ");
-                    Console.WriteLine(" 2. Modify Robot ");
-                    Console.WriteLine(" 3. Rules        ");
-                    Console.WriteLine(" 4. Quit         ");
-                    Console.WriteLine("~~~~~~~~~~~~~~~~~");
-                    Console.WriteLine();
-                    Console.WriteLine("Please enter your choice (1 - 4). . .");
-                    Console.WriteLine();
-                    string userChoice = Console.ReadLine();
-                    bool isNumeric = int.TryParse(userChoice, out mCho);
-                    if (isNumeric == true) {
-                        mnuChoValid = true;
-                    }
-                    else {
-                        Console.ForegroundColor = ConsoleColor.Red;
-                        Console.Write("Error: ");
-                        Console.ForegroundColor = ConsoleColor.Yellow;
-                        Console.Write("Please enter a number!");
-                        Console.ForegroundColor = ConsoleColor.White;
-                        Console.WriteLine();
-                        System.Threading.Thread.Sleep(1000);
-                    }
-                } while (!mnuChoValid);
-                if (mCho == 1) {
-                    PlayGame();
-                }
-                else if (mCho == 2) {
-                    ModifyRobot();
-                }
-                else if (mCho == 3) {
-                    Rules();
-                }
-                else if (mCho == 4) {
-                    userQuit = true;
-                    Environment.Exit(0);
-                }
-                else {
-                    Console.ForegroundColor = ConsoleColor.Red;
-                    Console.Write("Error: ");
-                    Console.ForegroundColor = ConsoleColor.Yellow;
-                    Console.Write("Valid choice not entered. Please enter an integer between 1 and 4.");
-                    Console.ForegroundColor = ConsoleColor.White;
-                    Console.WriteLine();
-                    System.Threading.Thread.Sleep(1000);
-                }
-            } while (!userQuit);
+                    Console.WriteLine("Please enter a number!");
+                    break;
+                case 2:
+                    Console.Clear();
+                    Console.WriteLine("Valid choice not entered. Please enter an integer between 1 and 4.");
+                    break;
+                case 3:
+                    Console.Clear();
+                    Console.WriteLine("Valid choice not entered. Please enter an integer between 1 and 3.");
+                    break;
+                case 4:
+                    Console.WriteLine(" Move invalid! You have attempted to move out of the grid. Please try again.");
+                    break;
+                default:
+                    Console.Clear();
+                    Console.WriteLine("Unknown error code.");               
+                    break;
+            }
+            System.Threading.Thread.Sleep(800);
         }
 
-        public static void ModifyRobot() {
+        static void MainMenu() {
+            bool inputValid = false;
+            int mCho = 0;
+            do {
+                Console.Clear();
+                Console.WriteLine("    Main Menu    ");
+                Console.WriteLine();
+                Console.WriteLine("~~~~~~~~~~~~~~~~~");
+                Console.WriteLine(" 1. Play Game    ");
+                Console.WriteLine(" 2. Modify Robot ");
+                Console.WriteLine(" 3. Rules        ");
+                Console.WriteLine(" 4. Quit         ");
+                Console.WriteLine("~~~~~~~~~~~~~~~~~");
+                Console.WriteLine();
+                Console.WriteLine("Please enter your choice (1 - 4). . .");
+                Console.WriteLine();
+                string userChoice = Console.ReadLine();
+                bool isNumeric = int.TryParse(userChoice, out mCho);
+                if (isNumeric == true) {
+                    inputValid = true;
+                    switch (mCho) {
+                        case 1:
+                            PlayGame();
+                            break;
+                        case 2:
+                            ModifyRobot();
+                            break;
+                        case 3:
+                            Rules();
+                            break;
+                        case 4:
+                            Environment.Exit(0);
+                            break;
+                        default:
+                            inputValid = false;
+                            Error(2);
+                            break;
+                    }
+                }
+                else {
+                    Error(1);
+                }
+            } while (!inputValid);
+        }
+
+        static void ModifyRobot() {
             bool goBackToMainMenu = false;
             int mCho = 0;
             do {
@@ -143,41 +143,31 @@ namespace BotMod {
                 string userChoice = Console.ReadLine();
                 bool isNumeric = int.TryParse(userChoice, out mCho);
                 if (isNumeric) {
-                    if (mCho == 1) {
-                        NameRobot();
-                    }
-                    else if (mCho == 2) {
-                        SelectTractionType();
-                    }
-                    else if (mCho == 3) {
-                        ChangeBaySize();
-                    }
-                    else if (mCho == 4) {
-                        goBackToMainMenu = true;
-                    }
-                    else {
-                        Console.ForegroundColor = ConsoleColor.Red;
-                        Console.Write("Error: ");
-                        Console.ForegroundColor = ConsoleColor.Yellow;
-                        Console.Write("Valid choice not entered. Please enter an integer between 1 and 4.");
-                        Console.ForegroundColor = ConsoleColor.White;
-                        Console.WriteLine();
-                        System.Threading.Thread.Sleep(1000);
+                    switch (mCho) {
+                        case 1:
+                            NameRobot();
+                            break;
+                        case 2:
+                            SelectTractionType();
+                            break;
+                        case 3:
+                            ChangeBaySize();
+                            break;
+                        case 4:
+                            goBackToMainMenu = true;
+                            break;
+                        default:
+                            Error(3);
+                            break;
                     }
                 }
                 else {
-                    Console.ForegroundColor = ConsoleColor.Red;
-                    Console.Write("Error: ");
-                    Console.ForegroundColor = ConsoleColor.Yellow;
-                    Console.Write("Please enter a number!");
-                    Console.ForegroundColor = ConsoleColor.White;
-                    Console.WriteLine();
-                    System.Threading.Thread.Sleep(1000);
+                    Error(1);
                 }
             } while (!goBackToMainMenu);
         }
 
-        public static void NameRobot() {
+        static void NameRobot() {
             bool nameValid = false;
             bool nameConfirmed = false;
             do {
@@ -192,33 +182,19 @@ namespace BotMod {
                     string rbFChr = GlobalVars.robotsName.Substring(0, 1);
                     string rbFChrUpper = rbFChr.ToUpper();
                     if (GlobalVars.robotsName.Length < 3 && rbFChr != rbFChrUpper) {
-                        Console.ForegroundColor = ConsoleColor.Red;
-                        Console.Write("Error: ");
-                        Console.ForegroundColor = ConsoleColor.Yellow;
-                        Console.Write("Robot's name must be more than three characters long and start with a capital letter.");
-                        Console.ForegroundColor = ConsoleColor.White;
+                        Console.WriteLine("Robot's name must be more than three characters long and start with a capital letter.");
                         System.Threading.Thread.Sleep(800);
                         GlobalVars.robotsName = "Fred";
                         nameValid = false;
                     }
                     else if (rbFChr != rbFChrUpper) {
-                        Console.ForegroundColor = ConsoleColor.Red;
-                        Console.Write("Error: ");
-                        Console.ForegroundColor = ConsoleColor.Yellow;
-                        Console.Write("Robot's name must start with a capital letter.");
-                        Console.ForegroundColor = ConsoleColor.White;
-                        Console.WriteLine();
+                        Console.WriteLine("Robot's name must start with a capital letter.");
                         System.Threading.Thread.Sleep(800);
                         GlobalVars.robotsName = "Fred";
                         nameValid = false;
                     }
                     else if (GlobalVars.robotsName.Length < 3) {
-                        Console.ForegroundColor = ConsoleColor.Red;
-                        Console.Write("Error: ");
-                        Console.ForegroundColor = ConsoleColor.Yellow;
-                        Console.Write("Robot's name must be more than three characters long.");
-                        Console.ForegroundColor = ConsoleColor.White;
-                        Console.WriteLine();
+                        Console.WriteLine("Robot's name must be more than three characters long.");
                         System.Threading.Thread.Sleep(800);
                         GlobalVars.robotsName = "Fred";
                         nameValid = false;
@@ -257,7 +233,7 @@ namespace BotMod {
             } while (nameConfirmed == false);
         }
 
-        public static void SelectTractionType() {
+        static void SelectTractionType() {
             bool inputValid = false;
             int mCho = 0;
             do {
@@ -280,47 +256,32 @@ namespace BotMod {
                 string userInput = Console.ReadLine();
                 bool isNumeric = int.TryParse(userInput, out mCho);
                 if (isNumeric) {
-                    if (mCho == 1) {
-                        inputValid = true;
-                        GlobalVars.TractionType = "Wheels";
-                        Console.WriteLine("Traction type successfully set to {0}", GlobalVars.TractionType);
-                        System.Threading.Thread.Sleep(1000);
-                    }
-                    else if (mCho == 2) {
-                        inputValid = true;
-                        GlobalVars.TractionType = "Tracks";
-                        Console.WriteLine("Traction type successfully set to {0}", GlobalVars.TractionType);
-                        System.Threading.Thread.Sleep(800);
-                    }
-                    else if (mCho == 3) {
-                        inputValid = true;
-                        GlobalVars.TractionType = "Skis";
-                        Console.WriteLine("Traction type successfully set to {0}", GlobalVars.TractionType);
-                        System.Threading.Thread.Sleep(800);
-                    }
-                    else {
-                        Console.ForegroundColor = ConsoleColor.Red;
-                        Console.Write("Error: ");
-                        Console.ForegroundColor = ConsoleColor.Yellow;
-                        Console.Write("Valid choice not entered. Please enter an integer between 1 and 3.");
-                        Console.ForegroundColor = ConsoleColor.White;
-                        Console.WriteLine();
-                        System.Threading.Thread.Sleep(800);
+                    inputValid = true;
+                    switch (mCho) {
+                        case 1:
+                            GlobalVars.TractionType = "Wheels";
+                            break;
+                        case 2:
+                            GlobalVars.TractionType = "Tracks";
+                            break;
+                        case 3:
+                            GlobalVars.TractionType = "Skis";
+                            break;
+                        default:
+                            inputValid = false;
+                            Error(3);
+                            break;
                     }
                 }
                 else {
-                    Console.ForegroundColor = ConsoleColor.Red;
-                    Console.Write("Error: ");
-                    Console.ForegroundColor = ConsoleColor.Yellow;
-                    Console.Write("Please enter a number!");
-                    Console.ForegroundColor = ConsoleColor.White;
-                    Console.WriteLine();
-                    System.Threading.Thread.Sleep(800);
+                    Error(2);
                 }
             } while (!inputValid);
+            Console.WriteLine("Traction type successfully set to {0}", GlobalVars.TractionType);
+            System.Threading.Thread.Sleep(800);
         }
 
-        public static void ChangeBaySize() {
+        static void ChangeBaySize() {
             bool inputValid = false;
             int mCho = 0;
             do {
@@ -343,55 +304,34 @@ namespace BotMod {
                 string userInput = Console.ReadLine();
                 bool isNumeric = int.TryParse(userInput, out mCho);
                 if (isNumeric) {
-                    if (mCho == 1) {
-                        inputValid = true;
-                        GlobalVars.passengerBaySize = "Small";
-                        GlobalVars.largestBay = 0;
-                        Console.WriteLine("Passenger bay size sucessfully set to {0}", GlobalVars.passengerBaySize);
-                        System.Threading.Thread.Sleep(800);
-                    }
-                    else if (mCho == 2) {
-                        inputValid = true;
-                        GlobalVars.passengerBaySize = "Med";
-                        GlobalVars.largestBay = 1;
-                        Console.WriteLine("Passenger bay size sucessfully set to {0}", GlobalVars.passengerBaySize);
-                        System.Threading.Thread.Sleep(800);
-                    }
-                    else if (mCho == 3) {
-                        inputValid = true;
-                        GlobalVars.passengerBaySize = "Large";
-                        GlobalVars.largestBay = 2;
-                        Console.WriteLine("Passenger bay size sucessfully set to {0}", GlobalVars.passengerBaySize);
-                        System.Threading.Thread.Sleep(800);
-                    }
-                    else {
-                        Console.ForegroundColor = ConsoleColor.Red;
-                        Console.Write("Error: ");
-                        Console.ForegroundColor = ConsoleColor.Yellow;
-                        Console.Write("Valid choice not entered. Please enter an integer between 1 and 3.");
-                        Console.ForegroundColor = ConsoleColor.White;
-                        Console.WriteLine();
-                        System.Threading.Thread.Sleep(1000);
+                    inputValid = true;
+                    switch (mCho) {
+                        case 1:
+                            GlobalVars.passengerBaySize = "Small";
+                            break;
+                        case 2:
+                            GlobalVars.passengerBaySize = "Med";
+                            break;
+                        case 3:
+                            GlobalVars.passengerBaySize = "Large";
+                            break;
+                        default:
+                            inputValid = false;
+                            Error(3);
+                            break;
                     }
                 }
                 else {
-                    Console.ForegroundColor = ConsoleColor.Red;
-                    Console.Write("Error: ");
-                    Console.ForegroundColor = ConsoleColor.Yellow;
-                    Console.Write("Please enter a number!");
-                    Console.ForegroundColor = ConsoleColor.White;
-                    Console.WriteLine();
-                    System.Threading.Thread.Sleep(800);
+                    Error(2);
                 }
             } while (!inputValid);
+            Console.WriteLine("Passenger bay size successfully set to {0}", GlobalVars.passengerBaySize);
+            System.Threading.Thread.Sleep(800);
         }
 
-        public static void PlayGame() {
+        static void PlayGame() {
             Console.Clear();
-            InitialiseLandscapeData();
-            CompleteInitialisations();
-            EmptyLandscape();
-            InitialiseLandscape();
+            Init();
             bool gameOver = false;
             bool gameWon = false;
             do {
@@ -431,12 +371,12 @@ namespace BotMod {
             }
         }
 
-        public static void InitialiseLandscapeData() {
+        static void Init() {
+            int k = GlobalVars.landscapeSize - 1;
             string filePath = System.IO.Path.GetFullPath("boarddata.txt");
             using (StreamReader fileReader = new StreamReader(filePath)) {
                 string line;
                 int numeric = 0;
-                int k = GlobalVars.landscapeSize - 1;
                 int i = 0;
                 int j = 0;
                 do {
@@ -447,7 +387,7 @@ namespace BotMod {
                     bool isNumeric = int.TryParse(line, out numeric);
                     if (!isNumeric) {
                         line = line.Substring(0, 1);
-                        GlobalVars.landscapeData[i, j] = line;
+                        GlobalVars.terrain[i, j] = line;
                         if (j == k) {
                             j = 0;
                             i++;
@@ -458,76 +398,98 @@ namespace BotMod {
                     }
                 } while (!fileReader.EndOfStream);
             }
-        }
-
-        public static void CompleteInitialisations() {
-            GlobalVars.RobLoc.startingX = 0;
-            GlobalVars.RobLoc.startingY = 0;
-            GlobalVars.RobLoc.currentX = GlobalVars.RobLoc.startingX;
-            GlobalVars.RobLoc.currentY = GlobalVars.RobLoc.startingY;
-            GlobalVars.pplSaved = 0;
-            GlobalVars.powerRemaining = 150;
-            GlobalVars.pplToSave.person1 = GlobalVars.personCell;
-            GlobalVars.pplToSave.person2 = GlobalVars.personCell;
-            GlobalVars.pplToSave.person3 = GlobalVars.personCell;
-            GlobalVars.pplToSave.person4 = GlobalVars.personCell;
-        }
-
-        public static void EmptyLandscape() {
-            int k = GlobalVars.landscapeSize;
+            k++;
             for (int i = 0; i < k; i++) {
                 for (int j = 0; j < k; j++) {
-                    GlobalVars.landscape[i, j] = GlobalVars.emptyCell;
+                    GlobalVars.landscape[i, j] = 0;
                 }
             }
+            switch (GlobalVars.passengerBaySize) {
+                case "Small":
+                    GlobalVars.maxPassengers = 1;
+                    break;
+                case "Med":
+                    GlobalVars.maxPassengers = 2;
+                    break;
+                case "Large":
+                    GlobalVars.maxPassengers = 3;
+                    break;
+            }
+            GlobalVars.RobLoc.currentX = 0;
+            GlobalVars.RobLoc.currentY = 0;
+            GlobalVars.pplSaved = 0;
+            GlobalVars.powerRemaining = 150;
+            GlobalVars.landscape[0, 2] = 1;
+            GlobalVars.landscape[2, 7] = 1;
+            GlobalVars.landscape[6, 4] = 1;
+            GlobalVars.landscape[6, 9] = 1;
+            GlobalVars.landscape[3, 6] = 1;
         }
 
-        public static void InitialiseLandscape() {
-            GlobalVars.landscape[GlobalVars.RobLoc.currentX, GlobalVars.RobLoc.currentY] = GlobalVars.robotCell;
-            GlobalVars.landscape[0, 2] = GlobalVars.pplToSave.person1;
-            GlobalVars.landscape[2, 7] = GlobalVars.pplToSave.person2;
-            GlobalVars.landscape[6, 4] = GlobalVars.pplToSave.person3;
-            GlobalVars.landscape[6, 9] = GlobalVars.pplToSave.person4;
-            GlobalVars.landscape[3, 6] = "B";
-        }
-
-        public static void DrawLandscape() {
+        static void DrawLandscape() {
             Console.WriteLine();
             int k = GlobalVars.landscapeSize;
             for (int i = 0; i < k; i++) {
                 for (int j = 0; j < k; j++) {
-                    if (GlobalVars.landscape[i, j] == GlobalVars.landscape[GlobalVars.RobLoc.currentX, GlobalVars.RobLoc.currentY]) {
+                    if (i == GlobalVars.RobLoc.currentX && j == GlobalVars.RobLoc.currentY) {
                         Console.ForegroundColor = ConsoleColor.Red;
-                        Console.Write(GlobalVars.landscape[i, j]);
-                        Console.Write(" ");
+                        Console.Write("R");
                         Console.ForegroundColor = ConsoleColor.White;
                     }
                     else {
-                        if (GlobalVars.landscapeData[i, j] == "G") {
-                            Console.ForegroundColor = ConsoleColor.Green;
-                            Console.Write(GlobalVars.landscape[i, j]);
-                            Console.Write(" ");
-                            Console.ForegroundColor = ConsoleColor.White;
-                        }
-                        else if (GlobalVars.landscapeData[i, j] == "R") {
-                            Console.ForegroundColor = ConsoleColor.DarkGray;
-                            Console.Write(GlobalVars.landscape[i, j]);
-                            Console.Write(" ");
-                            Console.ForegroundColor = ConsoleColor.White;
-                        }
-                        else if (GlobalVars.landscapeData[i, j] == "W") {
-                            Console.ForegroundColor = ConsoleColor.Blue;
-                            Console.Write(GlobalVars.landscape[i, j]);
-                            Console.Write(" ");
-                            Console.ForegroundColor = ConsoleColor.White;
+                        switch (GlobalVars.terrain[i, j]) {
+                            case "G":
+                                Console.ForegroundColor = ConsoleColor.Green;
+                                switch (GlobalVars.landscape[i, j]) {
+                                    case 0:
+                                        Console.Write(".");
+                                        break;
+                                    case 1:
+                                        Console.Write("P");
+                                        break;
+                                    case 2:
+                                        Console.Write("B");
+                                        break;
+                                }
+                                break;
+                            case "R":
+                                Console.ForegroundColor = ConsoleColor.DarkGray;
+                                switch (GlobalVars.landscape[i, j]) {
+                                    case 0:
+                                        Console.Write(".");
+                                        break;
+                                    case 1:
+                                        Console.Write("P");
+                                        break;
+                                    case 2:
+                                        Console.Write("B");
+                                        break;
+                                }
+                                break;
+                            case "W":
+                                Console.ForegroundColor = ConsoleColor.Blue;
+                                switch (GlobalVars.landscape[i, j]) {
+                                    case 0:
+                                        Console.Write(".");
+                                        break;
+                                    case 1:
+                                        Console.Write("P");
+                                        break;
+                                    case 2:
+                                        Console.Write("B");
+                                        break;
+                                }
+                                break;
                         }
                     }
+                    Console.Write(" ");
                 }
                 Console.WriteLine();
             }
+            Console.ForegroundColor = ConsoleColor.White;
         }
 
-        public static void DisplayInfo() {
+        static void DisplayInfo() {
             Console.WriteLine();
             Console.ForegroundColor = ConsoleColor.White;
             Console.Write("Power Remaining: ");
@@ -541,30 +503,11 @@ namespace BotMod {
             Console.ForegroundColor = ConsoleColor.White;
             Console.WriteLine();
             Console.ForegroundColor = ConsoleColor.White;
-            Console.Write("Passenger bay 1: ");
+            Console.Write("Passengers: ");
             Console.ForegroundColor = ConsoleColor.Red;
-            Console.Write(GlobalVars.passengerBay[0]);
+            Console.Write(GlobalVars.passengers);
             Console.ForegroundColor = ConsoleColor.White;
             Console.WriteLine();
-            if (GlobalVars.passengerBaySize == "Med") {
-                Console.Write("Passenger bay 2: ");
-                Console.ForegroundColor = ConsoleColor.Red;
-                Console.Write(GlobalVars.passengerBay[1]);
-                Console.ForegroundColor = ConsoleColor.White;
-                Console.WriteLine();
-            }
-            else if (GlobalVars.passengerBaySize == "Large") {
-                Console.Write("Passenger bay 2: ");
-                Console.ForegroundColor = ConsoleColor.Red;
-                Console.Write(GlobalVars.passengerBay[1]);
-                Console.ForegroundColor = ConsoleColor.White;
-                Console.WriteLine();
-                Console.Write("Passenger bay 3: ");
-                Console.ForegroundColor = ConsoleColor.Red;
-                Console.Write(GlobalVars.passengerBay[2]);
-                Console.ForegroundColor = ConsoleColor.White;
-                Console.WriteLine();
-            }
             Console.Write("People saved: ");
             Console.ForegroundColor = ConsoleColor.Red;
             Console.Write(GlobalVars.pplSaved);
@@ -572,118 +515,92 @@ namespace BotMod {
             Console.WriteLine();
         }
 
-        public static string EnterMove() {
+        static string EnterMove() {
             string move;
             Console.ForegroundColor = ConsoleColor.White;
             bool moveIsValid = false;
-            bool moveIsWithinBounds = false;
             string inputMove;
             do {
-                do {
-                    Console.WriteLine();
-                    Console.WriteLine("Please enter a move for {0} to take:", GlobalVars.robotsName);
-                    inputMove = Console.ReadLine();
-                    inputMove = inputMove.ToUpper();
-                    if (inputMove == "N" || inputMove == "E" || inputMove == "S" || inputMove == "W") {
-                        moveIsValid = true;
+                Console.WriteLine();
+                Console.WriteLine("Please enter a move for {0} to take:", GlobalVars.robotsName);
+                inputMove = Console.ReadLine();
+                inputMove = inputMove.ToUpper();
+                if (inputMove == "N" || inputMove == "E" || inputMove == "S" || inputMove == "W") {
+                    moveIsValid = true;
+                    switch (inputMove) {
+                        case "N":
+                            if (GlobalVars.RobLoc.currentX == 0) {
+                                moveIsValid = false;
+                                Error(4);
+                            }
+                            break;
+                        case "E":
+                            if (GlobalVars.RobLoc.currentY == 9) {
+                                moveIsValid = false;
+                                Error(4);
+                            }
+                            break;
+                        case "S":
+                            if (GlobalVars.RobLoc.currentX == 9) {
+                                moveIsValid = false;
+                                Error(4);
+                            }
+                            break;
+                        case "W":
+                            if (GlobalVars.RobLoc.currentY == 0) {
+                                moveIsValid = false;
+                                Error(4);
+                            }
+                            break;
+                        default:
+                            moveIsValid = true;
+                            break;
                     }
-                    else {
-                        moveIsValid = false;
-                        Console.ForegroundColor = ConsoleColor.Red;
-                        Console.Write("Error:");
-                        Console.ForegroundColor = ConsoleColor.White;
-                        Console.Write(" Move invalid! You have entered a letter that is not a direction. Please try again.");
-                        Console.WriteLine();
-                    }
-                } while (!moveIsValid);
-                if (GlobalVars.RobLoc.currentX == 0 && inputMove == "N") {
-                    moveIsWithinBounds = false;
-                    Console.ForegroundColor = ConsoleColor.Red;
-                    Console.Write("Error:");
-                    Console.ForegroundColor = ConsoleColor.White;
-                    Console.Write(" Move invalid! You have attempted to move out of the grid. Please try again.");
-                    Console.WriteLine();
-                }
-                else if (GlobalVars.RobLoc.currentY == 0 && inputMove == "W") {
-                    moveIsWithinBounds = false;
-                    Console.ForegroundColor = ConsoleColor.Red;
-                    Console.Write("Error:");
-                    Console.ForegroundColor = ConsoleColor.White;
-                    Console.Write(" Move invalid! You have attempted to move out of the grid. Please try again.");
-                    Console.WriteLine();
-                }
-                else if (GlobalVars.RobLoc.currentY == 9 && inputMove == "E") {
-                    moveIsWithinBounds = false;
-                    Console.ForegroundColor = ConsoleColor.Red;
-                    Console.Write("Error:");
-                    Console.ForegroundColor = ConsoleColor.White;
-                    Console.Write(" Move invalid! You have attempted to move out of the grid. Please try again.");
-                    Console.WriteLine();
-                }
-                else if (GlobalVars.RobLoc.currentX == 9 && inputMove == "S") {
-                    moveIsWithinBounds = false;
-                    Console.ForegroundColor = ConsoleColor.Red;
-                    Console.Write("Error:");
-                    Console.ForegroundColor = ConsoleColor.White;
-                    Console.Write(" Move invalid! You have attempted to move out of the grid. Please try again.");
-                    Console.WriteLine();
                 }
                 else {
-                    Console.WriteLine("Move Valid! Moving {0} in the direction of {1}.", GlobalVars.robotsName, inputMove);
-                    moveIsWithinBounds = true;
+                    moveIsValid = false;
+                    Console.WriteLine(" Move invalid! You have entered a letter that is not a direction. Please try again.");
                 }
-            } while (!moveIsWithinBounds);
+            } while (!moveIsValid);
             move = inputMove;
+            Console.WriteLine("Move Valid! Moving {0} in the direction of {1}.", GlobalVars.robotsName, inputMove);
+            System.Threading.Thread.Sleep(400);
             return move;
         }
 
-        public static void MoveRobot(string move) { 
-            bool largestSlotIsFilled = false;
-            GlobalVars.RobLoc.newX = GlobalVars.RobLoc.currentX;
-            GlobalVars.RobLoc.newY = GlobalVars.RobLoc.currentY;
-            if (move == "N") {
-                GlobalVars.RobLoc.newX--;
-            }
-            else if (move == "E") {
-                GlobalVars.RobLoc.newY++;
-            }
-            else if (move == "S") {
-                GlobalVars.RobLoc.newX++;
-            }
-            else if (move == "W") {
-                GlobalVars.RobLoc.newY--;
+        static void MoveRobot(string move) {
+            switch (move) {
+                case "N":
+                    GlobalVars.RobLoc.currentX--;
+                    break;
+                case "E":
+                    GlobalVars.RobLoc.currentY++;
+                    break;
+                case "S":
+                    GlobalVars.RobLoc.currentX++;
+                    break;
+                case "W":
+                    GlobalVars.RobLoc.currentY--;
+                    break;
             }
             CalculateSlide(move);
             UpdatePowerRemaining();
-            if (GlobalVars.passengerBay[GlobalVars.largestBay] == null) {
-                largestSlotIsFilled = PickUpPerson();
+            if (GlobalVars.landscape[GlobalVars.RobLoc.currentX, GlobalVars.RobLoc.currentY] == 1) {
+                PickUpPerson();
             }
-            else if (GlobalVars.passengerBay[GlobalVars.largestBay] != null) {
-                largestSlotIsFilled = true;
-            }
-            DropPeople(move);
-            EraseRobot(largestSlotIsFilled);
-            GlobalVars.RobLoc.currentX = GlobalVars.RobLoc.newX;
-            GlobalVars.RobLoc.currentY = GlobalVars.RobLoc.newY;
-            ReplaceRobot();
+            if (GlobalVars.landscape[GlobalVars.RobLoc.currentX, GlobalVars.RobLoc.currentY] == 2) {
+                DropPeople(move);
+            }    
         }
 
-        public static void CalculateSlide(string move) {
-            if (GlobalVars.landscapeData[GlobalVars.RobLoc.newX, GlobalVars.RobLoc.newY] == "W") {
+        static void CalculateSlide(string move) {
+            if (GlobalVars.terrain[GlobalVars.RobLoc.newX, GlobalVars.RobLoc.newY] == "W") {
                 Random slideRNG = new Random();
                 int slide = slideRNG.Next(1, 17);
                 if (move == "N") {
                     if (GlobalVars.RobLoc.newX - 1 != -1) {
                         if (slide == 1) {
                             GlobalVars.RobLoc.newX--;
-                            slide = slideRNG.Next(1, 33);
-                            if (GlobalVars.landscapeData[GlobalVars.RobLoc.newX, GlobalVars.RobLoc.newY] == "W") {
-                                if (GlobalVars.RobLoc.newX - 1 != -1) {
-                                    if (slide == 1) {
-                                        GlobalVars.RobLoc.newX--;
-                                    }
-                                }
-                            }
                         }
                     }
                 }
@@ -691,14 +608,6 @@ namespace BotMod {
                     if (GlobalVars.RobLoc.newY + 1 != 10) {
                         if (slide == 1) {
                             GlobalVars.RobLoc.newY++;
-                            slide = slideRNG.Next(1, 33);
-                            if (GlobalVars.landscapeData[GlobalVars.RobLoc.newX, GlobalVars.RobLoc.newY] == "W") {
-                                if (GlobalVars.RobLoc.newY - 1 != 10) {
-                                    if (slide == 1) {
-                                        GlobalVars.RobLoc.newY++;
-                                    }
-                                }
-                            }
                         }
                     }
                 }
@@ -706,14 +615,6 @@ namespace BotMod {
                     if (GlobalVars.RobLoc.newX + 1 != 10) {
                         if (slide == 1) {
                             GlobalVars.RobLoc.newX++;
-                            slide = slideRNG.Next(1, 33);
-                            if (GlobalVars.landscapeData[GlobalVars.RobLoc.newX, GlobalVars.RobLoc.newY] == "W") {
-                                if (GlobalVars.RobLoc.newX - 1 != 10) {
-                                    if (slide == 1) {
-                                        GlobalVars.RobLoc.newX++;
-                                    }
-                                }
-                            }
                         }
                     }
                 }
@@ -721,28 +622,20 @@ namespace BotMod {
                     if (GlobalVars.RobLoc.newY - 1 != -1) {
                         if (slide == 1) {
                             GlobalVars.RobLoc.newY--;
-                            slide = slideRNG.Next(1, 33);
-                            if (GlobalVars.landscapeData[GlobalVars.RobLoc.newX, GlobalVars.RobLoc.newY] == "W") {
-                                if (GlobalVars.RobLoc.newY - 1 != -1) {
-                                    if (slide == 1) {
-                                        GlobalVars.RobLoc.newY--;
-                                    }
-                                }
-                            }
                         }
                     }
                 }
             }
         }
 
-        public static void UpdatePowerRemaining() {
+        static void UpdatePowerRemaining() {
             if (GlobalVars.passengerBaySize == "Med") {
                 GlobalVars.powerRemaining = GlobalVars.powerRemaining - 1;
             }
             else if (GlobalVars.passengerBaySize == "Large") {
                 GlobalVars.powerRemaining = GlobalVars.powerRemaining - 2;
             }
-            string currentSquare = GlobalVars.landscapeData[GlobalVars.RobLoc.currentX, GlobalVars.RobLoc.currentY];
+            string currentSquare = GlobalVars.terrain[GlobalVars.RobLoc.currentX, GlobalVars.RobLoc.currentY];
             if (GlobalVars.TractionType == "Wheels") {
                 if (currentSquare == "G") {
                     GlobalVars.powerRemaining = GlobalVars.powerRemaining - 1;
@@ -778,142 +671,19 @@ namespace BotMod {
             }
         }
 
-        public static bool PickUpPerson() {
-            bool largestSlotIsFilled = false;
-            if (GlobalVars.landscape[GlobalVars.RobLoc.newX, GlobalVars.RobLoc.newY] == GlobalVars.personCell) {
-                if (GlobalVars.passengerBaySize == "Small") {
-                    if (GlobalVars.passengerBay[0] == null) {
-                        GlobalVars.passengerBay[0] = GlobalVars.personCell;
-                        largestSlotIsFilled = true;
-                    }
-                }
-                else if (GlobalVars.passengerBaySize == "Med") {
-                    if (GlobalVars.passengerBay[0] == null) {
-                        GlobalVars.passengerBay[0] = GlobalVars.personCell;
-                    }
-                    else if (GlobalVars.passengerBay[1] == null) {
-                        GlobalVars.passengerBay[1] = GlobalVars.personCell;
-                        largestSlotIsFilled = true;
-                    }
-                }
-                else if (GlobalVars.passengerBaySize == "Large") {
-                    if (GlobalVars.passengerBay[0] == null) {
-                        GlobalVars.passengerBay[0] = GlobalVars.personCell;
-                    }
-                    else if (GlobalVars.passengerBay[1] == null) {
-                        GlobalVars.passengerBay[1] = GlobalVars.personCell;
-                    }
-                    else if (GlobalVars.passengerBay[2] == null) {
-                        GlobalVars.passengerBay[2] = GlobalVars.personCell;
-                        largestSlotIsFilled = true;
-                    }
-                }
-                if (GlobalVars.landscape[GlobalVars.RobLoc.newX, GlobalVars.RobLoc.newY] == GlobalVars.landscape[0, 2]) {
-                    if (!GlobalVars.personIsSaved.person1) {
-                        GlobalVars.personIsSaved.person1 = true;
-                    }
-                }
-                else if (GlobalVars.landscape[GlobalVars.RobLoc.newX, GlobalVars.RobLoc.newY] == GlobalVars.landscape[2, 7]) {
-                    if (!GlobalVars.personIsSaved.person2) {
-                        GlobalVars.personIsSaved.person2 = true;
-                    }
-                }
-                else if (GlobalVars.landscape[GlobalVars.RobLoc.newX, GlobalVars.RobLoc.newY] == GlobalVars.landscape[6, 4]) {
-                    if (!GlobalVars.personIsSaved.person3) {
-                        GlobalVars.personIsSaved.person3 = true;
-                    }
-                }
-                else if (GlobalVars.landscape[GlobalVars.RobLoc.newX, GlobalVars.RobLoc.newY] == GlobalVars.landscape[6, 9]) {
-                    if (!GlobalVars.personIsSaved.person4) {
-                        GlobalVars.personIsSaved.person4 = true;
-                    }
-                }
-            }
-            return largestSlotIsFilled;
-        }
-
-        public static void DropPeople(string move) {
-            if (GlobalVars.landscape[GlobalVars.RobLoc.newX, GlobalVars.RobLoc.newY] == "B") {
-                if (GlobalVars.passengerBay[0] == GlobalVars.personCell) {
-                    GlobalVars.passengerBay[0] = null;
-                    GlobalVars.pplSaved++;
-                }
-                if (GlobalVars.passengerBaySize == "Med" || GlobalVars.passengerBaySize == "Large") {
-                    if (GlobalVars.passengerBaySize == "Med") {
-                        if (GlobalVars.passengerBay[1] == GlobalVars.personCell) {
-                            GlobalVars.passengerBay[1] = null;
-                            GlobalVars.pplSaved++;
-                        }
-                    }
-                    else if (GlobalVars.passengerBaySize == "Large") {
-                        if (GlobalVars.passengerBay[2] == GlobalVars.personCell) {
-                            GlobalVars.passengerBay[1] = null;
-                            GlobalVars.passengerBay[2] = null;
-                            GlobalVars.pplSaved += 2;
-                        }
-                        else if (GlobalVars.passengerBay[1] == GlobalVars.personCell) {
-                            GlobalVars.passengerBay[1] = null;
-                            GlobalVars.pplSaved++;
-                        }
-                    }
-                }
+        static void PickUpPerson() {
+            if (GlobalVars.passengers < GlobalVars.maxPassengers) {
+                GlobalVars.passengers++;
+                GlobalVars.landscape[GlobalVars.RobLoc.currentX, GlobalVars.RobLoc.currentY] = 0;
             }
         }
 
-        public static void EraseRobot(bool largestSlotIsFilled) {
-            if (largestSlotIsFilled) {
-                if (GlobalVars.landscape[GlobalVars.RobLoc.currentX, GlobalVars.RobLoc.currentY] == GlobalVars.landscape[3, 6]) {
-                    GlobalVars.landscape[GlobalVars.RobLoc.currentX, GlobalVars.RobLoc.currentY] = "B";
-                }
-                else if (GlobalVars.landscape[GlobalVars.RobLoc.currentX, GlobalVars.RobLoc.currentY] == GlobalVars.landscape[0, 2]) {
-                    if (!GlobalVars.personIsSaved.person1) {
-                        GlobalVars.landscape[0, 2] = GlobalVars.personCell;
-                    }
-                    else {
-                        GlobalVars.landscape[0, 2] = GlobalVars.emptyCell;
-                    }
-                }
-                else if (GlobalVars.landscape[GlobalVars.RobLoc.currentX, GlobalVars.RobLoc.currentY] == GlobalVars.landscape[2, 7]) {
-                    if (!GlobalVars.personIsSaved.person2) {
-                        GlobalVars.landscape[2, 7] = GlobalVars.personCell;
-                    }
-                    else {
-                        GlobalVars.landscape[2, 7] = GlobalVars.emptyCell;
-                    }
-                }
-                else if (GlobalVars.landscape[GlobalVars.RobLoc.currentX, GlobalVars.RobLoc.currentY] == GlobalVars.landscape[6, 4]) {
-                    if (!GlobalVars.personIsSaved.person3) {
-                        GlobalVars.landscape[6, 4] = GlobalVars.personCell;
-                    }
-                    else {
-                        GlobalVars.landscape[6, 4] = GlobalVars.emptyCell;
-                    }
-                }
-                else if (GlobalVars.landscape[GlobalVars.RobLoc.currentX, GlobalVars.RobLoc.currentY] == GlobalVars.landscape[6, 9]) {
-                    if (!GlobalVars.personIsSaved.person4) {
-                        GlobalVars.landscape[6, 9] = GlobalVars.personCell;
-                    }
-                    else {
-                        GlobalVars.landscape[6, 9] = GlobalVars.emptyCell;
-                    }
-                }
-                else {
-                    GlobalVars.landscape[GlobalVars.RobLoc.currentX, GlobalVars.RobLoc.currentY] = GlobalVars.emptyCell;
-                }
-            }
-            else if (GlobalVars.landscape[GlobalVars.RobLoc.currentX, GlobalVars.RobLoc.currentY] == GlobalVars.landscape[3, 6]) {
-                GlobalVars.landscape[GlobalVars.RobLoc.currentX, GlobalVars.RobLoc.currentY] = "B";
-            }
-            else {
-                GlobalVars.landscape[GlobalVars.RobLoc.currentX, GlobalVars.RobLoc.currentY] = GlobalVars.emptyCell;
-            }
+        static void DropPeople(string move) {
+                GlobalVars.pplSaved += GlobalVars.passengers;
+                GlobalVars.passengers = 0;
         }
 
-        public static void ReplaceRobot() {
-            GlobalVars.landscape[GlobalVars.RobLoc.currentX, GlobalVars.RobLoc.currentY] = GlobalVars.robotCell;
-        }
-
-        public static void YouWon() {
+        static void YouWon() {
             Console.ForegroundColor = ConsoleColor.White;
             bool userPlayAgain = false;
             do {
@@ -944,7 +714,7 @@ namespace BotMod {
             } while (!userPlayAgain);
         }
 
-        public static void YouLost() {
+        static void YouLost() {
             Console.ForegroundColor = ConsoleColor.White;
             bool userPlayAgain = false;
             do {
@@ -975,7 +745,7 @@ namespace BotMod {
             } while (!userPlayAgain);
         }
 
-        public static void Rules() {
+        static void Rules() {
             Console.Clear();
             Console.ForegroundColor = ConsoleColor.Yellow;
             Console.WriteLine();
