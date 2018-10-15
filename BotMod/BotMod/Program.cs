@@ -11,17 +11,21 @@ namespace BotMod {
         public static string robotsName = "Fred";
         public static int passengers = 0;
         public static int maxPassengers = 0;
+        public static int traction;
         public const int landscapeSize = 10;
-        public static string[,] terrain = new string[landscapeSize, landscapeSize];
+        public static int[,] terrain = new int[landscapeSize, landscapeSize];
         public static int[,] landscape = new int[landscapeSize, landscapeSize];
         public static int powerRemaining = 150;
         public static int pplSaved = 0;
         public static string TractionType = "Wheels";
         public static string passengerBaySize = "Small";
-        public struct RobLocation {
-            public int currentX, currentY;
-        }
-        public static RobLocation RobLoc = new RobLocation();
+        public static int x;
+        public static int y;
+        public static readonly int[,] powerLoss = new int[3, 3] {
+                {1, 2, 3},
+                {2, 1, 2},
+                {3, 3, 1},
+        };
     }
 
     class Program {
@@ -53,7 +57,7 @@ namespace BotMod {
             MainMenu();
         }
 
-        static void Error(int errorCode) {
+        static bool Error(int errorCode) {
             switch (errorCode) {
                 case 1:
                     Console.Clear();
@@ -76,6 +80,7 @@ namespace BotMod {
                     break;
             }
             System.Threading.Thread.Sleep(800);
+            return false;
         }
 
         static void MainMenu() {
@@ -113,13 +118,12 @@ namespace BotMod {
                             Environment.Exit(0);
                             break;
                         default:
-                            inputValid = false;
-                            Error(2);
+                            inputValid = Error(2);
                             break;
                     }
                 }
                 else {
-                    Error(1);
+                    inputValid = Error(1);
                 }
             } while (!inputValid);
         }
@@ -168,69 +172,27 @@ namespace BotMod {
         }
 
         static void NameRobot() {
-            bool nameValid = false;
-            bool nameConfirmed = false;
+            bool inputValid = false;
             do {
-                do {
-                    Console.Clear();
-                    Console.WriteLine("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
-                    Console.WriteLine("Current Robot Name: {0}", GlobalVars.robotsName);
-                    Console.WriteLine("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
-                    Console.WriteLine("Please enter a valid name for your robot.");
-                    Console.WriteLine("Make sure it starts with a capital letter and is more than three characters long.");
-                    GlobalVars.robotsName = Console.ReadLine();
-                    string rbFChr = GlobalVars.robotsName.Substring(0, 1);
-                    string rbFChrUpper = rbFChr.ToUpper();
-                    if (GlobalVars.robotsName.Length < 3 && rbFChr != rbFChrUpper) {
-                        Console.WriteLine("Robot's name must be more than three characters long and start with a capital letter.");
-                        System.Threading.Thread.Sleep(800);
-                        GlobalVars.robotsName = "Fred";
-                        nameValid = false;
-                    }
-                    else if (rbFChr != rbFChrUpper) {
-                        Console.WriteLine("Robot's name must start with a capital letter.");
-                        System.Threading.Thread.Sleep(800);
-                        GlobalVars.robotsName = "Fred";
-                        nameValid = false;
-                    }
-                    else if (GlobalVars.robotsName.Length < 3) {
-                        Console.WriteLine("Robot's name must be more than three characters long.");
-                        System.Threading.Thread.Sleep(800);
-                        GlobalVars.robotsName = "Fred";
-                        nameValid = false;
-                    }
-                    else {
-                        nameValid = true;
-                    }
-                } while (nameValid == false);
-                bool confirmationvalid = false;
-                do {
-                    Console.Clear();
-                    Console.WriteLine("Robot name is valid. Are you sure you want to change your robot's name? (Y/N)");
-                    string rNmConfQ = Console.ReadLine();
-                    rNmConfQ = rNmConfQ.ToUpper();
-                    if (rNmConfQ == "Y") {
-                        nameConfirmed = true;
-                        confirmationvalid = true;
-                        Console.ForegroundColor = ConsoleColor.Green;
-                        Console.WriteLine("New robot name confirmed.");
-                        Console.ForegroundColor = ConsoleColor.White;
-                    }
-                    else if (rNmConfQ == "N") {
-                        nameConfirmed = false;
-                        confirmationvalid = true;
-                        Console.WriteLine("Robot name not confirmed. You will be sent back to the name robot menu.");
-                    }
-                    else {
-                        confirmationvalid = false;
-                        Console.WriteLine("Please enter a valid character!");
-                        System.Threading.Thread.Sleep(500);
-                    }
-                } while (confirmationvalid == false);
-                if (nameConfirmed == false) {
-                    GlobalVars.robotsName = "Fred";
+                Console.Clear();
+                Console.WriteLine("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+                Console.WriteLine("Current Robot Name: {0}", GlobalVars.robotsName);
+                Console.WriteLine("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+                Console.WriteLine("Please enter a valid name for your robot.");
+                Console.WriteLine("Make sure it starts with a capital letter and is more than three characters long.");
+                string userInput = Console.ReadLine();
+                string rbFChr = GlobalVars.robotsName.Substring(0, 1);
+                string rbFChrUpper = rbFChr.ToUpper();
+                if (userInput.Length > 3 && rbFChr == rbFChrUpper) {
+                    GlobalVars.robotsName = userInput;
+                    Console.WriteLine("Name set to {0}", GlobalVars.robotsName);
+                    System.Threading.Thread.Sleep(800);
+                    inputValid = true;
                 }
-            } while (nameConfirmed == false);
+                else {
+                    inputValid = Error(6);
+                }
+            } while (inputValid == false);
         }
 
         static void SelectTractionType() {
@@ -376,7 +338,6 @@ namespace BotMod {
             string filePath = System.IO.Path.GetFullPath("boarddata.txt");
             using (StreamReader fileReader = new StreamReader(filePath)) {
                 string line;
-                int numeric = 0;
                 int i = 0;
                 int j = 0;
                 do {
@@ -384,17 +345,14 @@ namespace BotMod {
                         break;
                     }
                     line = fileReader.ReadLine();
-                    bool isNumeric = int.TryParse(line, out numeric);
-                    if (!isNumeric) {
-                        line = line.Substring(0, 1);
-                        GlobalVars.terrain[i, j] = line;
-                        if (j == k) {
-                            j = 0;
-                            i++;
-                        }
-                        else {
-                            j++;
-                        }
+                    int numeric = Convert.ToInt32(line);
+                    GlobalVars.terrain[i, j] = numeric;
+                    if (j == k) {
+                        j = 0;
+                        i++;
+                    }
+                    else {
+                        j++;
                     }
                 } while (!fileReader.EndOfStream);
             }
@@ -415,8 +373,20 @@ namespace BotMod {
                     GlobalVars.maxPassengers = 3;
                     break;
             }
-            GlobalVars.RobLoc.currentX = 0;
-            GlobalVars.RobLoc.currentY = 0;
+            switch (GlobalVars.TractionType) {
+                case "Wheels":
+                    GlobalVars.traction = 0;
+                    break;
+                case "Tracks":
+                    GlobalVars.traction = 1;
+                    break;
+                case "Skis":
+                    GlobalVars.traction = 2;
+                    break;
+
+            }
+            GlobalVars.x = 0;
+            GlobalVars.y = 0;
             GlobalVars.pplSaved = 0;
             GlobalVars.powerRemaining = 150;
             GlobalVars.landscape[0, 2] = 1;
@@ -431,20 +401,20 @@ namespace BotMod {
             int k = GlobalVars.landscapeSize;
             for (int i = 0; i < k; i++) {
                 for (int j = 0; j < k; j++) {
-                    if (i == GlobalVars.RobLoc.currentX && j == GlobalVars.RobLoc.currentY) {
+                    if (i == GlobalVars.x && j == GlobalVars.y) {
                         Console.ForegroundColor = ConsoleColor.Red;
                         Console.Write("R");
                         Console.ForegroundColor = ConsoleColor.White;
                     }
                     else {
                         switch (GlobalVars.terrain[i, j]) {
-                            case "G":
+                            case 0:
                                 Console.ForegroundColor = ConsoleColor.Green;
                                 break;
-                            case "R":
+                            case 1:
                                 Console.ForegroundColor = ConsoleColor.DarkGray;
                                 break;
-                            case "W":
+                            case 2:
                                 Console.ForegroundColor = ConsoleColor.Blue;
                                 break;
                         }
@@ -507,25 +477,25 @@ namespace BotMod {
                     moveIsValid = true;
                     switch (inputMove) {
                         case "N":
-                            if (GlobalVars.RobLoc.currentX == 0) {
+                            if (GlobalVars.x == 0) {
                                 moveIsValid = false;
                                 Error(4);
                             }
                             break;
                         case "E":
-                            if (GlobalVars.RobLoc.currentY == 9) {
+                            if (GlobalVars.y == 9) {
                                 moveIsValid = false;
                                 Error(4);
                             }
                             break;
                         case "S":
-                            if (GlobalVars.RobLoc.currentX == 9) {
+                            if (GlobalVars.x == 9) {
                                 moveIsValid = false;
                                 Error(4);
                             }
                             break;
                         case "W":
-                            if (GlobalVars.RobLoc.currentY == 0) {
+                            if (GlobalVars.y == 0) {
                                 moveIsValid = false;
                                 Error(4);
                             }
@@ -549,57 +519,57 @@ namespace BotMod {
         static void MoveRobot(string move) {
             switch (move) {
                 case "N":
-                    GlobalVars.RobLoc.currentX--;
+                    GlobalVars.x--;
                     break;
                 case "E":
-                    GlobalVars.RobLoc.currentY++;
+                    GlobalVars.y++;
                     break;
                 case "S":
-                    GlobalVars.RobLoc.currentX++;
+                    GlobalVars.x++;
                     break;
                 case "W":
-                    GlobalVars.RobLoc.currentY--;
+                    GlobalVars.y--;
                     break;
             }
             CalculateSlide(move);
             UpdatePowerRemaining();
-            if (GlobalVars.landscape[GlobalVars.RobLoc.currentX, GlobalVars.RobLoc.currentY] == 1) {
+            if (GlobalVars.landscape[GlobalVars.x, GlobalVars.y] == 1) {
                 PickUpPerson();
             }
-            if (GlobalVars.landscape[GlobalVars.RobLoc.currentX, GlobalVars.RobLoc.currentY] == 2) {
+            if (GlobalVars.landscape[GlobalVars.x, GlobalVars.y] == 2) {
                 DropPeople(move);
             }    
         }
 
         static void CalculateSlide(string move) {
-            if (GlobalVars.terrain[GlobalVars.RobLoc.currentX, GlobalVars.RobLoc.currentY] == "W") {
+            if (GlobalVars.terrain[GlobalVars.x, GlobalVars.y] == 2) {
                 Random slideRNG = new Random();
                 int slide = slideRNG.Next(1, 9);
                 if (move == "N") {
-                    if (GlobalVars.RobLoc.currentX - 1 != -1) {
+                    if (GlobalVars.x - 1 != -1) {
                         if (slide == 1) {
-                            GlobalVars.RobLoc.currentX--;
+                            GlobalVars.x--;
                         }
                     }
                 }
                 else if (move == "E") {
-                    if (GlobalVars.RobLoc.currentY + 1 != 10) {
+                    if (GlobalVars.y + 1 != 10) {
                         if (slide == 1) {
-                            GlobalVars.RobLoc.currentY++;
+                            GlobalVars.y++;
                         }
                     }
                 }
                 else if (move == "S") {
-                    if (GlobalVars.RobLoc.currentX + 1 != 10) {
+                    if (GlobalVars.x + 1 != 10) {
                         if (slide == 1) {
-                            GlobalVars.RobLoc.currentX++;
+                            GlobalVars.x++;
                         }
                     }
                 }
                 else if (move == "W") {
-                    if (GlobalVars.RobLoc.currentY - 1 != -1) {
+                    if (GlobalVars.y - 1 != -1) {
                         if (slide == 1) {
-                            GlobalVars.RobLoc.currentY--;
+                            GlobalVars.y--;
                         }
                     }
                 }
@@ -607,44 +577,12 @@ namespace BotMod {
         }
 
         static void UpdatePowerRemaining() {
-            if (GlobalVars.passengerBaySize == "Med") {
-                GlobalVars.powerRemaining = GlobalVars.powerRemaining - 1;
-            }
-            else if (GlobalVars.passengerBaySize == "Large") {
-                GlobalVars.powerRemaining = GlobalVars.powerRemaining - 2;
-            }
-            string currentSquare = GlobalVars.terrain[GlobalVars.RobLoc.currentX, GlobalVars.RobLoc.currentY];
-            if (GlobalVars.TractionType == "Wheels") {
-                if (currentSquare == "G") {
-                    GlobalVars.powerRemaining = GlobalVars.powerRemaining - 1;
-                }
-                else if (currentSquare == "R") {
-                    GlobalVars.powerRemaining = GlobalVars.powerRemaining - 2;
-                }
-                else if (currentSquare == "W") {
-                    GlobalVars.powerRemaining = GlobalVars.powerRemaining - 3;
-                }
-            }
-            else if (GlobalVars.TractionType == "Tracks") {
-                if (currentSquare == "G") {
-                    GlobalVars.powerRemaining = GlobalVars.powerRemaining - 2;
-                }
-                else if (currentSquare == "R") {
-                    GlobalVars.powerRemaining = GlobalVars.powerRemaining - 1;
-                }
-                else if (currentSquare == "W") {
-                    GlobalVars.powerRemaining = GlobalVars.powerRemaining - 2;
-                }
-            }
-            else if (GlobalVars.TractionType == "Skis") {
-                if (currentSquare == "G") {
-                    GlobalVars.powerRemaining = GlobalVars.powerRemaining - 2;
-                }
-                else if (currentSquare == "R") {
-                    GlobalVars.powerRemaining = GlobalVars.powerRemaining - 3;
-                }
-                else if (currentSquare == "W") {
-                    GlobalVars.powerRemaining = GlobalVars.powerRemaining - 1;
+            GlobalVars.powerRemaining -= GlobalVars.maxPassengers - 1;
+            GlobalVars.powerRemaining -= GlobalVars.powerLoss[GlobalVars.traction, GlobalVars.terrain[GlobalVars.x, GlobalVars.y]];
+            if (GlobalVars.landscape[GlobalVars.x, GlobalVars.y] == 1) {
+                if (GlobalVars.passengers < GlobalVars.maxPassengers) {
+                    GlobalVars.passengers++;
+                    GlobalVars.landscape[GlobalVars.x, GlobalVars.y] = 0;
                 }
             }
         }
@@ -652,7 +590,7 @@ namespace BotMod {
         static void PickUpPerson() {
             if (GlobalVars.passengers < GlobalVars.maxPassengers) {
                 GlobalVars.passengers++;
-                GlobalVars.landscape[GlobalVars.RobLoc.currentX, GlobalVars.RobLoc.currentY] = 0;
+                GlobalVars.landscape[GlobalVars.x, GlobalVars.y] = 0;
             }
         }
 
