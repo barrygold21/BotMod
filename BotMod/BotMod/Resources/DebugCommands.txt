@@ -1,0 +1,9 @@
+Debug Commands:
+debug.ShowCommands - Toggles the debug commands menu.
+debug.ModifyDifficulty - Used to access the difficulty menu.
+debug.RandomLocations - Toggles random locations.
+debug.MaxPower <integer> - Sets the max power to the integer given.
+For max powers less than 100, use put 0s before the number i.e 099
+Max here is 999. Max for main selection is 32-bit limit.
+debug.LockDifficulty - Locks the difficulty menu.
+debug.UnlockDifficulty - Unlocks the difficulty menu.

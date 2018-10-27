@@ -1,36 +1,40 @@
 using System;
 using System.IO;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using BotMod.Properties;
 
 namespace BotMod {
 
-    public class GlobalVars {
-        public static string robotsName = "Fred";
-        public static int passengers = 0;
-        public static int maxPassengers = 0;
-        public static int traction;
+    public class Variables {
+        public string robotsName = "Fred";
+        public bool randomLocations = false;
+        public bool reverseControls = false;
+        public bool showDebugCommands = false;
+        public static bool difficultyUnlocked;
+        public int passengers = 0;
+        public string tractionType = "Wheels";
+        public int traction = 0;
+        public string passengerBaySize = "Small";
+        public int maxPassengers = 1;
         public const int landscapeSize = 10;
-        public static int[,] terrain = new int[landscapeSize, landscapeSize];
-        public static int[,] landscape = new int[landscapeSize, landscapeSize];
-        public static int powerRemaining = 150;
-        public static int pplSaved = 0;
-        public static string TractionType = "Wheels";
-        public static string passengerBaySize = "Small";
-        public static int x;
-        public static int y;
-        public static readonly int[,] powerLoss = new int[3, 3] {
+        public int[,] terrain = new int[landscapeSize, landscapeSize];
+        public int[,] landscape = new int[landscapeSize, landscapeSize];
+        public int powerRemaining;
+        public int maxPower = 150;
+        public int pplSaved = 0;
+        public int x;
+        public int y;
+        public readonly int[,] powerLoss = new int[3, 3] {
                 {1, 2, 3},
                 {2, 1, 2},
                 {3, 3, 1},
         };
     }
 
-    class Program {
+    class Program : Variables {
 
         static void Main() {
+            Program p = new Program();
+            difficultyUnlocked = IsDifficultyUnlocked();
             Console.Title = "BotMod - A Robot Game";
             bool flashControl = false;
             do {
@@ -54,10 +58,19 @@ namespace BotMod {
                 flashControl = !flashControl;
             } while (!Console.KeyAvailable);
             Console.ReadKey(true);
-            MainMenu();
+            p.MainMenu();
         }
 
-        static bool Error(int errorCode) {
+        static bool IsDifficultyUnlocked() {
+            switch (Settings.Default["DifficultyUnlocked"]) {
+                case true:
+                    return true;
+                default:
+                    return false;
+            }
+        }
+
+        bool Error(int errorCode) {
             switch (errorCode) {
                 case 1:
                     Console.Clear();
@@ -72,32 +85,63 @@ namespace BotMod {
                     Console.WriteLine("Valid choice not entered. Please enter an integer between 1 and 3.");
                     break;
                 case 4:
-                    Console.WriteLine(" Move invalid! You have attempted to move out of the grid. Please try again.");
+                    Console.WriteLine("Move invalid! You have attempted to move out of the grid. Please try again.");
+                    break;
+                case 5:
+                    Console.WriteLine("Move invalid! You have entered a letter that is not a direction. Please try again.");
+                    break;
+                case 6:
+                    Console.Clear();
+                    Console.WriteLine("Please enter a valid character!");
+                    break;
+                case 7:
+                    Console.Clear();
+                    Console.WriteLine("Valid choice not entered. Please enter an integer between 1 and 5.");
+                    break;
+                case 8:
+                    Console.Clear();
+                    Console.WriteLine("Difficulty selection is not unlocked. Beat the game once to unlock it!");
+                    break;
+                case 9:
+                    Console.Clear();
+                    Console.WriteLine("Please turn the setting either On or Off.");
                     break;
                 default:
                     Console.Clear();
-                    Console.WriteLine("Unknown error code.");               
+                    Console.WriteLine("Unknown error code.");
                     break;
             }
             System.Threading.Thread.Sleep(800);
             return false;
         }
 
-        static void MainMenu() {
+        void MainMenu() {
             bool inputValid = false;
             int mCho = 0;
             do {
                 Console.Clear();
-                Console.WriteLine("    Main Menu    ");
+                Console.WriteLine("      Main Menu      ");
                 Console.WriteLine();
-                Console.WriteLine("~~~~~~~~~~~~~~~~~");
-                Console.WriteLine(" 1. Play Game    ");
-                Console.WriteLine(" 2. Modify Robot ");
-                Console.WriteLine(" 3. Rules        ");
-                Console.WriteLine(" 4. Quit         ");
-                Console.WriteLine("~~~~~~~~~~~~~~~~~");
+                Console.WriteLine("~~~~~~~~~~~~~~~~~~~~~");
+                Console.WriteLine(" 1. Play Game        ");
+                Console.WriteLine(" 2. Modify Robot     ");
+                if (!difficultyUnlocked) {
+                    Console.ForegroundColor = ConsoleColor.DarkGray;
+                    Console.WriteLine(" 3. Modify Difficulty");
+                    Console.ForegroundColor = ConsoleColor.White;
+                }
+                else {
+                    Console.WriteLine(" 3. Modify Difficulty");
+                }
+                Console.WriteLine(" 4. Rules            ");
+                Console.WriteLine(" 5. Quit             ");
+                Console.WriteLine("~~~~~~~~~~~~~~~~~~~~~");
                 Console.WriteLine();
-                Console.WriteLine("Please enter your choice (1 - 4). . .");
+                if (showDebugCommands) {
+                    ShowDebugCommands();
+                }
+
+                Console.WriteLine("Please enter your choice (1 - 5). . .");
                 Console.WriteLine();
                 string userChoice = Console.ReadLine();
                 bool isNumeric = int.TryParse(userChoice, out mCho);
@@ -108,27 +152,49 @@ namespace BotMod {
                             PlayGame();
                             break;
                         case 2:
-                            inputValid = false; // but actually true
+                            inputValid = false;
                             ModifyRobot();
                             break;
                         case 3:
-                            Rules();
+                            if (difficultyUnlocked) {
+                                inputValid = false;
+                                ChangeDifficulty();
+                            }
+                            else { inputValid = Error(8); }
                             break;
                         case 4:
+                            Rules();
+                            break;
+                        case 5:
                             Environment.Exit(0);
                             break;
                         default:
-                            inputValid = Error(2);
+                            inputValid = Error(7);
                             break;
                     }
                 }
-                else {
-                    inputValid = Error(1);
-                }
+                else if (userChoice == "debug.ShowCommands") { showDebugCommands = !showDebugCommands; }
+                else if (userChoice == "debug.ModifyDifficulty") { ChangeDifficulty(); } // this is handy
+                else if (userChoice == "debug.RandomLocations") { randomLocations = !randomLocations; } // this is also handy
+                else if (userChoice.StartsWith("debug.MaxPower")) { maxPower = int.Parse(userChoice.Substring(15, 3)); }
+                else if (userChoice == "debug.LockDifficulty") { difficultyUnlocked = LockDifficulty(); }
+                else if (userChoice == "debug.UnlockDifficulty") { difficultyUnlocked = UnlockDifficulty(); }
+                // please always enter an integer, put a space after the string part too
+                else { inputValid = Error(1); }
             } while (!inputValid);
         }
 
-        static void ModifyRobot() {
+        void ShowDebugCommands() {
+            using (var rules = new StringReader(Data.DebugCommands)) {
+                string line;
+                while ((line = rules.ReadLine()) != null) {
+                    Console.WriteLine(line);
+                }
+            }
+            Console.WriteLine();
+        }
+
+        void ModifyRobot() {
             bool goBackToMainMenu = false;
             int mCho = 0;
             do {
@@ -136,9 +202,9 @@ namespace BotMod {
                 Console.WriteLine("             Modify Robot             ");
                 Console.WriteLine();
                 Console.WriteLine("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
-                Console.WriteLine(" 1. Name Robot ({0})                  ", GlobalVars.robotsName);
-                Console.WriteLine(" 2. Change Traction ({0})             ", GlobalVars.TractionType);
-                Console.WriteLine(" 3. Change Passenger Bay Size ({0})   ", GlobalVars.passengerBaySize);
+                Console.WriteLine(" 1. Name Robot ({0})                  ", robotsName);
+                Console.WriteLine(" 2. Change Traction ({0})             ", tractionType);
+                Console.WriteLine(" 3. Change Passenger Bay Size ({0})   ", passengerBaySize);
                 Console.WriteLine(" 4. Go To Main Menu                   ");
                 Console.WriteLine("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
                 Console.WriteLine();
@@ -161,47 +227,43 @@ namespace BotMod {
                             goBackToMainMenu = true;
                             break;
                         default:
-                            Error(3);
+                            Error(2);
                             break;
                     }
                 }
-                else {
-                    Error(1);
-                }
+                else { Error(1); }
             } while (!goBackToMainMenu);
         }
 
-        static void NameRobot() {
+        void NameRobot() {
             bool inputValid = false;
             do {
                 Console.Clear();
                 Console.WriteLine("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
-                Console.WriteLine("Current Robot Name: {0}", GlobalVars.robotsName);
+                Console.WriteLine("Current Robot Name: {0}", robotsName);
                 Console.WriteLine("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
                 Console.WriteLine("Please enter a valid name for your robot.");
                 Console.WriteLine("Make sure it starts with a capital letter and is more than three characters long.");
                 string userInput = Console.ReadLine();
-                string rbFChr = GlobalVars.robotsName.Substring(0, 1);
+                string rbFChr = robotsName.Substring(0, 1);
                 string rbFChrUpper = rbFChr.ToUpper();
                 if (userInput.Length > 3 && rbFChr == rbFChrUpper) {
-                    GlobalVars.robotsName = userInput;
-                    Console.WriteLine("Name set to {0}", GlobalVars.robotsName);
+                    robotsName = userInput;
+                    Console.WriteLine("Name set to {0}", robotsName);
                     System.Threading.Thread.Sleep(800);
                     inputValid = true;
                 }
-                else {
-                    inputValid = Error(6);
-                }
+                else { inputValid = Error(6); }
             } while (inputValid == false);
         }
 
-        static void SelectTractionType() {
+        void SelectTractionType() {
             bool inputValid = false;
             int mCho = 0;
             do {
                 Console.Clear();
                 Console.WriteLine("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
-                Console.WriteLine("Current traction type: {0}         ", GlobalVars.TractionType);
+                Console.WriteLine("Current traction type: {0}         ", tractionType);
                 Console.WriteLine("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
                 Console.WriteLine();
                 Console.WriteLine("Here you can change what traction type you are using.");
@@ -212,8 +274,8 @@ namespace BotMod {
                 Console.WriteLine();
                 Console.WriteLine("If you want information on these traction types, you should");
                 Console.WriteLine("go to the rules page to see how they work.");
-                Console.WriteLine();
                 Console.WriteLine("Please enter which traction type you wish to use (1 - 3):");
+                Console.WriteLine();
                 Console.WriteLine();
                 string userInput = Console.ReadLine();
                 bool isNumeric = int.TryParse(userInput, out mCho);
@@ -221,35 +283,33 @@ namespace BotMod {
                     inputValid = true;
                     switch (mCho) {
                         case 1:
-                            GlobalVars.TractionType = "Wheels";
+                            tractionType = "Wheels";
                             break;
                         case 2:
-                            GlobalVars.TractionType = "Tracks";
+                            tractionType = "Tracks";
                             break;
                         case 3:
-                            GlobalVars.TractionType = "Skis";
+                            tractionType = "Skis";
                             break;
                         default:
-                            inputValid = false;
-                            Error(3);
+                            inputValid = Error(3);
                             break;
                     }
                 }
-                else {
-                    Error(2);
-                }
+                else { Error(2); }
             } while (!inputValid);
-            Console.WriteLine("Traction type successfully set to {0}", GlobalVars.TractionType);
+            traction = mCho - 1;
+            Console.WriteLine("Traction type successfully set to {0}", tractionType);
             System.Threading.Thread.Sleep(800);
         }
 
-        static void ChangeBaySize() {
+        void ChangeBaySize() {
             bool inputValid = false;
             int mCho = 0;
             do {
                 Console.Clear();
                 Console.WriteLine("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
-                Console.WriteLine("Current passenger bay size: {0}         ", GlobalVars.passengerBaySize);
+                Console.WriteLine("Current passenger bay size: {0}         ", passengerBaySize);
                 Console.WriteLine("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
                 Console.WriteLine();
                 Console.WriteLine("Here you can change how large your passenger bay is.");
@@ -269,145 +329,272 @@ namespace BotMod {
                     inputValid = true;
                     switch (mCho) {
                         case 1:
-                            GlobalVars.passengerBaySize = "Small";
+                            passengerBaySize = "Small";
                             break;
                         case 2:
-                            GlobalVars.passengerBaySize = "Med";
+                            passengerBaySize = "Med";
                             break;
                         case 3:
-                            GlobalVars.passengerBaySize = "Large";
+                            passengerBaySize = "Large";
                             break;
                         default:
-                            inputValid = false;
-                            Error(3);
+                            inputValid = Error(3);
                             break;
                     }
                 }
-                else {
-                    Error(2);
-                }
+                else { Error(2); }
             } while (!inputValid);
-            Console.WriteLine("Passenger bay size successfully set to {0}", GlobalVars.passengerBaySize);
+            maxPassengers = mCho;
+            Console.WriteLine("Passenger bay size successfully set to {0}", passengerBaySize);
             System.Threading.Thread.Sleep(800);
         }
 
-        static void PlayGame() {
+        void ChangeDifficulty() {
+            bool goBackToMainMenu = false;
+            int mCho = 0;
+            do {
+                Console.Clear();
+                Console.WriteLine("     Modify Difficulty     ");
+                Console.WriteLine();
+                Console.WriteLine("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+                Console.WriteLine(" 1. Change Max Power Units ({0})", maxPower);
+                Console.WriteLine(" 2. Change Random Spawning ({0})", randomLocations);
+                Console.WriteLine(" 3. Reverse Controls ({0})", reverseControls);
+                Console.WriteLine(" 4. Go To Main Menu        ");
+                Console.WriteLine("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+                Console.WriteLine();
+                Console.WriteLine("Please enter your choice (1 - 4). . .");
+                Console.WriteLine();
+                string userChoice = Console.ReadLine();
+                bool isNumeric = int.TryParse(userChoice, out mCho);
+                if (isNumeric) {
+                    switch (mCho) {
+                        case 1:
+                            EnterMaxPowerUnits();
+                            break;
+                        case 2:
+
+                            break;
+                        case 3:
+                            ChangeBaySize();
+                            break;
+                        case 4:
+                            goBackToMainMenu = true;
+                            break;
+                        default:
+                            Error(2);
+                            break;
+                    }
+                }
+                else { Error(1); }
+            } while (!goBackToMainMenu);
+        }
+
+        void EnterMaxPowerUnits() {
+            bool inputValid = false;
+            do {
+                Console.Clear();
+                Console.WriteLine("Max Power Units: {0}", maxPower);
+                Console.WriteLine("Please enter the max power units you wish to have:");
+                string usersChoice = Console.ReadLine();
+                bool isNumeric = int.TryParse(usersChoice, out int choice);
+                if (isNumeric) {
+                    if (choice > 0) {
+                        maxPower = choice;
+                        Console.WriteLine("Max Power set to {0}", maxPower);
+                        System.Threading.Thread.Sleep(800);
+                    }
+                    else { inputValid = Error(1); }
+                }
+                else { inputValid = Error(1); }
+            } while (!inputValid);
+        }
+
+        void ChangeRandomSpawning() {
+            bool inputValid = false;
+            do {
+                Console.Clear();
+                Console.WriteLine("Random Spawning is currently set to {0}", randomLocations);
+                Console.WriteLine("Please enter whether you want random spawning on or off: ");
+                string usersChoice = Console.ReadLine();
+                usersChoice = usersChoice.ToUpper();
+                inputValid = true;
+                switch (usersChoice) {
+                    case "ON":
+                        randomLocations = true;
+                        break;
+                    case "OFF":
+                        randomLocations = false;
+                        break;
+                    default:
+                        inputValid = Error(9);
+                        break;
+                }
+            } while (!inputValid);
+            Console.WriteLine("Random spawning set to {0}", randomLocations);
+            System.Threading.Thread.Sleep(800);
+        }
+
+        void ReverseControls() {
+            bool inputValid = false;
+            do {
+                Console.Clear();
+                Console.WriteLine("Reverse Controls is currently set to {0}", reverseControls);
+                Console.WriteLine("Please enter whether you want Reverse Controls on or off: ");
+                string usersChoice = Console.ReadLine();
+                usersChoice = usersChoice.ToUpper();
+                inputValid = true;
+                switch (usersChoice) {
+                    case "ON":
+                        reverseControls = true;
+                        break;
+                    case "OFF":
+                        reverseControls = false;
+                        break;
+                    default:
+                        inputValid = Error(9);
+                        break;
+                }
+            } while (!inputValid);
+            Console.WriteLine("Reverse Controls set to {0}", reverseControls);
+            System.Threading.Thread.Sleep(800);
+        }
+
+        bool LockDifficulty() {
+            Console.WriteLine("Difficulty Locked.");
+            System.Threading.Thread.Sleep(800);
+            Settings.Default["DifficultyUnlocked"] = false;
+            Settings.Default.Save();
+            return false;
+        }
+
+        bool UnlockDifficulty() {
+            Console.WriteLine("Difficulty Unlocked.");
+            System.Threading.Thread.Sleep(800);
+            Settings.Default["DifficultyUnlocked"] = true;
+            Settings.Default.Save();
+            return true;
+        }
+
+        void PlayGame() {
             Console.Clear();
             Init();
             bool gameOver = false;
-            bool gameWon = false;
             do {
                 DrawLandscape();
                 DisplayInfo();
                 string move = EnterMove();
+                UpdatePowerRemaining();
                 Console.WriteLine();
                 System.Threading.Thread.Sleep(100);
                 MoveRobot(move);
                 Console.Clear();
-                if (GlobalVars.powerRemaining == 0 && GlobalVars.pplSaved == 4) {
-                    gameWon = true;
+                Console.Clear();
+                if (powerRemaining == 0 || pplSaved == 4) {
+                    if (pplSaved == 4) {
+                        YouWon();
+                    }
+                    else if (powerRemaining == 0) {
+                        YouLost();
+                    }
                     gameOver = true;
-                    break;
                 }
-                else if (GlobalVars.powerRemaining == 0) {
-                    gameOver = true;
-                    break;
-                }
-                else if (GlobalVars.pplSaved == 4) {
-                    gameWon = true;
-                    break;
-                }
-                else {
-                    gameOver = false;
-                    gameWon = false;
-                }
-            } while (!gameOver || !gameWon);
-            if (gameWon) {
-                YouWon();
-            }
-            else if (gameOver) {
-                YouLost();
-            }
-            else if (gameWon && gameOver) {
-                YouWon();
-            }
+            } while (!gameOver);
         }
 
-        static void Init() {
-            int k = GlobalVars.landscapeSize - 1;
-            string filePath = System.IO.Path.GetFullPath("boarddata.txt");
-            using (StreamReader fileReader = new StreamReader(filePath)) {
+        void Init() {
+            int k = landscapeSize;
+            using (var reader = new StringReader(Data.Terrain)) {
                 string line;
+                int lineContent;
                 int i = 0;
                 int j = 0;
-                do {
-                    if (i == k + 1) {
-                        break;
-                    }
-                    line = fileReader.ReadLine();
-                    int numeric = Convert.ToInt32(line);
-                    GlobalVars.terrain[i, j] = numeric;
-                    if (j == k) {
+                while ((line = reader.ReadLine()) != null) {
+                    lineContent = Convert.ToInt32(line);
+                    landscape[i, j] = 0;
+                    terrain[i, j] = lineContent;
+                    if (j == k - 1) {
                         j = 0;
                         i++;
                     }
-                    else {
-                        j++;
-                    }
-                } while (!fileReader.EndOfStream);
-            }
-            k++;
-            for (int i = 0; i < k; i++) {
-                for (int j = 0; j < k; j++) {
-                    GlobalVars.landscape[i, j] = 0;
+                    else { j++; }
+                    if (i == k) { break; }
                 }
             }
-            switch (GlobalVars.passengerBaySize) {
-                case "Small":
-                    GlobalVars.maxPassengers = 1;
-                    break;
-                case "Med":
-                    GlobalVars.maxPassengers = 2;
-                    break;
-                case "Large":
-                    GlobalVars.maxPassengers = 3;
-                    break;
-            }
-            switch (GlobalVars.TractionType) {
-                case "Wheels":
-                    GlobalVars.traction = 0;
-                    break;
-                case "Tracks":
-                    GlobalVars.traction = 1;
-                    break;
-                case "Skis":
-                    GlobalVars.traction = 2;
-                    break;
-
-            }
-            GlobalVars.x = 0;
-            GlobalVars.y = 0;
-            GlobalVars.pplSaved = 0;
-            GlobalVars.powerRemaining = 150;
-            GlobalVars.landscape[0, 2] = 1;
-            GlobalVars.landscape[2, 7] = 1;
-            GlobalVars.landscape[6, 4] = 1;
-            GlobalVars.landscape[6, 9] = 1;
-            GlobalVars.landscape[3, 6] = 2;
+            if (randomLocations) { RandomLocations(); }
+            else { StandardLocations(); }
+            pplSaved = 0;
+            powerRemaining = maxPower;
         }
 
-        static void DrawLandscape() {
+        void RandomLocations() {
+            bool locationValid = false;
+            Random randomLocation = new Random();
+            int randomX;
+            int randomY;
+            locationValid = false;
+            do {
+                randomX = randomLocation.Next(0, 10);
+                randomY = randomLocation.Next(0, 10);
+                if (terrain[randomX, randomY] == 0) {
+                    locationValid = true;
+                }
+                else { locationValid = false; }
+            } while (!locationValid);
+            x = randomX;
+            y = randomY;
+            for (int i = 0; i < 4; i++) {
+                locationValid = false;
+                do {
+                    randomX = randomLocation.Next(0, 10);
+                    randomY = randomLocation.Next(0, 10);
+                    if (landscape[randomX, randomY] == 0) {
+                        if (randomX != x && randomY != y) {
+                            locationValid = true;
+                        }
+                        else { locationValid = false; }
+                    }
+                    else { locationValid = false; }
+                } while (!locationValid);
+                landscape[randomX, randomY] = 1;
+            }
+            locationValid = false;
+            do {
+                randomX = randomLocation.Next(0, 10);
+                randomY = randomLocation.Next(0, 10);
+                if (landscape[randomX, randomY] == 0) {
+                    if (randomX != x && randomY != y) {
+                        locationValid = true;
+                    }
+                    else { locationValid = false; }
+                }
+                else { locationValid = false; }
+            } while (!locationValid);
+            landscape[randomX, randomY] = 2;
+        }
+
+        void StandardLocations() {
+            x = 0;
+            y = 0;
+            landscape[0, 2] = 1;
+            landscape[2, 7] = 1;
+            landscape[6, 4] = 1;
+            landscape[6, 9] = 1;
+            landscape[3, 6] = 2;
+        }
+
+        void DrawLandscape() {
             Console.WriteLine();
-            int k = GlobalVars.landscapeSize;
+            int k = landscapeSize;
             for (int i = 0; i < k; i++) {
                 for (int j = 0; j < k; j++) {
-                    if (i == GlobalVars.x && j == GlobalVars.y) {
+                    if (i == x && j == y) {
                         Console.ForegroundColor = ConsoleColor.Red;
                         Console.Write("R");
                         Console.ForegroundColor = ConsoleColor.White;
                     }
                     else {
-                        switch (GlobalVars.terrain[i, j]) {
+                        switch (terrain[i, j]) {
                             case 0:
                                 Console.ForegroundColor = ConsoleColor.Green;
                                 break;
@@ -418,7 +605,7 @@ namespace BotMod {
                                 Console.ForegroundColor = ConsoleColor.Blue;
                                 break;
                         }
-                        switch (GlobalVars.landscape[i, j]) {
+                        switch (landscape[i, j]) {
                             case 0:
                                 Console.Write(".");
                                 break;
@@ -437,67 +624,73 @@ namespace BotMod {
             Console.ForegroundColor = ConsoleColor.White;
         }
 
-        static void DisplayInfo() {
+        void DisplayInfo() {
             Console.WriteLine();
             Console.ForegroundColor = ConsoleColor.White;
             Console.Write("Power Remaining: ");
             Console.ForegroundColor = ConsoleColor.Red;
-            Console.Write(GlobalVars.powerRemaining);
-            Console.ForegroundColor = ConsoleColor.White;
-            Console.WriteLine();
-            Console.Write("Traction type: ");
-            Console.ForegroundColor = ConsoleColor.Red;
-            Console.Write(GlobalVars.TractionType);
+            Console.Write(powerRemaining);
             Console.ForegroundColor = ConsoleColor.White;
             Console.WriteLine();
             Console.ForegroundColor = ConsoleColor.White;
             Console.Write("Passengers: ");
             Console.ForegroundColor = ConsoleColor.Red;
-            Console.Write(GlobalVars.passengers);
+            Console.Write(passengers);
             Console.ForegroundColor = ConsoleColor.White;
             Console.WriteLine();
             Console.Write("People saved: ");
             Console.ForegroundColor = ConsoleColor.Red;
-            Console.Write(GlobalVars.pplSaved);
+            Console.Write(pplSaved);
             Console.ForegroundColor = ConsoleColor.White;
             Console.WriteLine();
         }
 
-        static string EnterMove() {
-            string move;
+        string EnterMove() {
             Console.ForegroundColor = ConsoleColor.White;
             bool moveIsValid = false;
-            string inputMove;
+            string userInput;
             do {
                 Console.WriteLine();
-                Console.WriteLine("Please enter a move for {0} to take:", GlobalVars.robotsName);
-                inputMove = Console.ReadLine();
-                inputMove = inputMove.ToUpper();
-                if (inputMove == "N" || inputMove == "E" || inputMove == "S" || inputMove == "W") {
+                Console.WriteLine("Please enter a move for {0} to take:", robotsName);
+                userInput = Console.ReadLine();
+                userInput = userInput.ToUpper();
+                if (userInput == "N" || userInput == "E" || userInput == "S" || userInput == "W") {
                     moveIsValid = true;
-                    switch (inputMove) {
+                    if (reverseControls) {
+                        switch (userInput) {
+                            case "N":
+                                userInput = "S";
+                                break;
+                            case "E":
+                                userInput = "W";
+                                break;
+                            case "S":
+                                userInput = "N";
+                                break;
+                            case "W":
+                                userInput = "E";
+                                break;
+                        }
+                    }
+                    switch (userInput) {
                         case "N":
-                            if (GlobalVars.x == 0) {
-                                moveIsValid = false;
-                                Error(4);
+                            if (x == 0) {
+                                moveIsValid = Error(4);
                             }
                             break;
                         case "E":
-                            if (GlobalVars.y == 9) {
-                                moveIsValid = false;
-                                Error(4);
+                            if (y == 9) {
+                                moveIsValid = Error(4);
                             }
                             break;
                         case "S":
-                            if (GlobalVars.x == 9) {
-                                moveIsValid = false;
-                                Error(4);
+                            if (x == 9) {
+                                moveIsValid = Error(4);
                             }
                             break;
                         case "W":
-                            if (GlobalVars.y == 0) {
-                                moveIsValid = false;
-                                Error(4);
+                            if (y == 0) {
+                                moveIsValid = Error(4);
                             }
                             break;
                         default:
@@ -505,101 +698,87 @@ namespace BotMod {
                             break;
                     }
                 }
-                else {
+                else if (userInput == "DEBUG.BEATGAME") {
+                    pplSaved = 4;
+                    Console.WriteLine("All explorers saved. Enter a valid move to complete game");
                     moveIsValid = false;
-                    Console.WriteLine(" Move invalid! You have entered a letter that is not a direction. Please try again.");
                 }
+                else { moveIsValid = Error(5); }
             } while (!moveIsValid);
-            move = inputMove;
-            Console.WriteLine("Move Valid! Moving {0} in the direction of {1}.", GlobalVars.robotsName, inputMove);
+            Console.WriteLine("Move Valid! Moving {0} in the direction of {1}.", robotsName, userInput);
             System.Threading.Thread.Sleep(400);
-            return move;
+            return userInput;
         }
 
-        static void MoveRobot(string move) {
+        void MoveRobot(string move) {
             switch (move) {
                 case "N":
-                    GlobalVars.x--;
+                    x--;
                     break;
                 case "E":
-                    GlobalVars.y++;
+                    y++;
                     break;
                 case "S":
-                    GlobalVars.x++;
+                    x++;
                     break;
                 case "W":
-                    GlobalVars.y--;
+                    y--;
                     break;
             }
-            CalculateSlide(move);
-            UpdatePowerRemaining();
-            if (GlobalVars.landscape[GlobalVars.x, GlobalVars.y] == 1) {
-                PickUpPerson();
+            if (terrain[x, y] == 2) { CalculateSlide(move); }
+            if (landscape[x, y] == 1 && passengers < maxPassengers) {
+                passengers++;
+                landscape[x, y] = 0;
             }
-            if (GlobalVars.landscape[GlobalVars.x, GlobalVars.y] == 2) {
-                DropPeople(move);
-            }    
+            else if (landscape[x, y] == 2) {
+                pplSaved += passengers;
+                passengers = 0;
+            }
         }
 
-        static void CalculateSlide(string move) {
-            if (GlobalVars.terrain[GlobalVars.x, GlobalVars.y] == 2) {
-                Random slideRNG = new Random();
-                int slide = slideRNG.Next(1, 9);
-                if (move == "N") {
-                    if (GlobalVars.x - 1 != -1) {
-                        if (slide == 1) {
-                            GlobalVars.x--;
+        void CalculateSlide(string move) {
+            Random slideRNG = new Random();
+            int slide = slideRNG.Next(1, 9);
+            if (slide == 1) {
+                switch (move) {
+                    case "N":
+                        if (x - 1 != -1) {
+                            x--;
                         }
-                    }
-                }
-                else if (move == "E") {
-                    if (GlobalVars.y + 1 != 10) {
-                        if (slide == 1) {
-                            GlobalVars.y++;
+                        break;
+                    case "E":
+                        if (y + 1 != 10) {
+                            y++;
                         }
-                    }
-                }
-                else if (move == "S") {
-                    if (GlobalVars.x + 1 != 10) {
-                        if (slide == 1) {
-                            GlobalVars.x++;
+                        break;
+                    case "S":
+                        if (x + 1 != 10) {
+
+                            x++;
                         }
-                    }
-                }
-                else if (move == "W") {
-                    if (GlobalVars.y - 1 != -1) {
-                        if (slide == 1) {
-                            GlobalVars.y--;
+                        break;
+                    case "W":
+                        if (y - 1 != -1) {
+                            y--;
                         }
-                    }
+                        break;
                 }
             }
         }
 
-        static void UpdatePowerRemaining() {
-            GlobalVars.powerRemaining -= GlobalVars.maxPassengers - 1;
-            GlobalVars.powerRemaining -= GlobalVars.powerLoss[GlobalVars.traction, GlobalVars.terrain[GlobalVars.x, GlobalVars.y]];
-            if (GlobalVars.landscape[GlobalVars.x, GlobalVars.y] == 1) {
-                if (GlobalVars.passengers < GlobalVars.maxPassengers) {
-                    GlobalVars.passengers++;
-                    GlobalVars.landscape[GlobalVars.x, GlobalVars.y] = 0;
-                }
+        void UpdatePowerRemaining() {
+            powerRemaining -= maxPassengers - 1;
+            powerRemaining -= powerLoss[traction, terrain[x, y]];
+        }
+
+        void YouWon() {
+            if (!difficultyUnlocked) {
+                Settings.Default["DifficultyUnlocked"] = true;
+                Settings.Default.Save();
+                Console.Clear();
+                Console.WriteLine("Difficulty Modifications Unlocked!");
+                System.Threading.Thread.Sleep(1000);
             }
-        }
-
-        static void PickUpPerson() {
-            if (GlobalVars.passengers < GlobalVars.maxPassengers) {
-                GlobalVars.passengers++;
-                GlobalVars.landscape[GlobalVars.x, GlobalVars.y] = 0;
-            }
-        }
-
-        static void DropPeople(string move) {
-                GlobalVars.pplSaved += GlobalVars.passengers;
-                GlobalVars.passengers = 0;
-        }
-
-        static void YouWon() {
             Console.ForegroundColor = ConsoleColor.White;
             bool userPlayAgain = false;
             do {
@@ -623,16 +802,11 @@ namespace BotMod {
                     System.Threading.Thread.Sleep(500);
                     Environment.Exit(0);
                 }
-                else {
-                    userPlayAgain = false;
-                    Console.Clear();
-                    Console.WriteLine("Please enter a valid character!");
-                    System.Threading.Thread.Sleep(500);
-                }
+                else { userPlayAgain = Error(6); }
             } while (!userPlayAgain);
         }
 
-        static void YouLost() {
+        void YouLost() {
             Console.ForegroundColor = ConsoleColor.White;
             bool userPlayAgain = false;
             do {
@@ -656,58 +830,22 @@ namespace BotMod {
                     System.Threading.Thread.Sleep(500);
                     Environment.Exit(0);
                 }
-                else {
-                    userPlayAgain = false;
-                    Console.Clear();
-                    Console.WriteLine("Please enter a valid character!");
-                    System.Threading.Thread.Sleep(500);
-                }
+                else { userPlayAgain = Error(6); }
             } while (!userPlayAgain);
         }
 
-        static void Rules() {
+        void Rules() {
             Console.Clear();
             Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.WriteLine();
-            Console.WriteLine("Rules:                                                           ");
-            Console.WriteLine();
+            Console.WriteLine("\n Rules: \n");
             Console.ForegroundColor = ConsoleColor.White;
-            Console.WriteLine("1. The robot always starts in the top left of the grid.          ");
-            Console.WriteLine("2. The robot can move in 4 directions (N, E, S, W).              ");
-            Console.WriteLine("3. The robot cannot make diagonal moves.                         ");
-            Console.WriteLine("4. The robot cannot move beyond the edge of the grid.            ");
-            Console.WriteLine("5. The robot can carry one, two or three people in the           ");
-            Console.WriteLine("   passenger bay, depending on which size you are using:         ");
-            Console.WriteLine("   If you are using a small passenger bay, you get one slot.     ");
-            Console.WriteLine("   If you are using a medium passenger bay, you get two.         ");
-            Console.WriteLine("   ... And if you are using a large passenger bay, you get three!");
-            Console.WriteLine("    Each passenger bay size uses zero, one and two extra power   ");
-            Console.WriteLine("    units respectively.                                          ");
-            Console.WriteLine("6. There are three traction types: Wheels, Tracks and Skis.      ");
-            Console.WriteLine("   This table gives all information you need about traction types:");
-            Console.WriteLine();
-            Console.WriteLine("   Traction type | On Grass | On Rocks | On Ice  ");
-            Console.WriteLine("   Wheels        | -1 Power | -2 Power | -3 Power");
-            Console.WriteLine("   Tracks        | -2 Power | -1 Power | -2 Power");
-            Console.WriteLine("   Skis          | -2 Power | -3 Power | -1 Power");
-            Console.WriteLine();
-            Console.WriteLine("7. If there is no room in the passenger bay, the person will be  ");
-            Console.WriteLine("   left behind and won't be picked up.                           ");
-            Console.WriteLine("8. The robot has 150 power units.                                ");
-            Console.WriteLine("9. The player wins if all people are dropped off at base         ");
-            Console.WriteLine("   camp before the robot runs out of power.                      ");
-            Console.WriteLine("10 . If the robot runs out of power before all players are       ");
-            Console.WriteLine("   at the base, the player loses.                                ");
-            Console.WriteLine();
-            Console.WriteLine("Each piece on the board and the meaning for it:");
-            Console.WriteLine();
-            Console.WriteLine("Piece  |   Object    ");
-            Console.WriteLine("R      |   Robot     ");
-            Console.WriteLine("P      |   Person    ");
-            Console.WriteLine("B      |   Base Camp ");
-            Console.WriteLine(".      |   Empty Cell");
-            Console.WriteLine();
-            Console.WriteLine("Press any key to continue. . .");
+            using (var rules = new StringReader(Data.Rules)) {
+                string line;
+                while ((line = rules.ReadLine()) != null) {
+                    Console.WriteLine(line);
+                }
+            }
+            Console.WriteLine("\n    Press any key to go back to the main menu. . .");
             Console.ReadKey(true);
         }
     }
